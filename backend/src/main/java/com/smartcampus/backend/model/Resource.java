@@ -28,6 +28,9 @@ public class Resource {
     private String description;
     private List<String> availabilityWindows;  // e.g. ["MON 08:00-18:00"]
 
+    private String imageUrl;          // main image
+    private List<String> images;      // additional gallery images
+
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 }

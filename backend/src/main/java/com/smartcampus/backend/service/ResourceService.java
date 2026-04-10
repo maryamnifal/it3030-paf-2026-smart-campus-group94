@@ -22,9 +22,11 @@ public class ResourceService {
                 .type(dto.getType())
                 .capacity(dto.getCapacity())
                 .location(dto.getLocation())
-                .status(dto.getStatus() != null ? dto.getStatus() : "ACTIVE")
+                .status(dto.getStatus() != null && !dto.getStatus().isBlank() ? dto.getStatus() : "ACTIVE")
                 .description(dto.getDescription())
                 .availabilityWindows(dto.getAvailabilityWindows())
+                .imageUrl(dto.getImageUrl())
+                .images(dto.getImages())
                 .createdAt(LocalDateTime.now())
                 .updatedAt(LocalDateTime.now())
                 .build();
@@ -61,14 +63,18 @@ public class ResourceService {
     // Update a resource
     public Resource updateResource(String id, ResourceDTO dto) {
         Resource existing = getResourceById(id);
+
         existing.setName(dto.getName());
         existing.setType(dto.getType());
         existing.setCapacity(dto.getCapacity());
         existing.setLocation(dto.getLocation());
-        existing.setStatus(dto.getStatus());
+        existing.setStatus(dto.getStatus() != null && !dto.getStatus().isBlank() ? dto.getStatus() : "ACTIVE");
         existing.setDescription(dto.getDescription());
         existing.setAvailabilityWindows(dto.getAvailabilityWindows());
+        existing.setImageUrl(dto.getImageUrl());
+        existing.setImages(dto.getImages());
         existing.setUpdatedAt(LocalDateTime.now());
+
         return resourceRepository.save(existing);
     }
 
@@ -86,4 +92,3 @@ public class ResourceService {
         resourceRepository.delete(existing);
     }
 }
-
