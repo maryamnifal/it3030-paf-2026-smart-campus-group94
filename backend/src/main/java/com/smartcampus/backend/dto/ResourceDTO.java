@@ -28,4 +28,8 @@ public class ResourceDTO {
     private String description;
 
     private List<String> availabilityWindows;
+
+    // ✅ NEW FIELDS
+    private String imageUrl;        // main image
+    private List<String> images;    // gallery images
 }
