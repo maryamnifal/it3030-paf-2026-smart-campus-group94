@@ -31,7 +31,7 @@ export default function Navbar() {
         left: 0,
         right: 0,
         zIndex: 1000,
-        background: "#0b1220",
+        background: "transparent", // ✅ removed navy background
         transform: scrolled ? "translateY(-100%)" : "translateY(0)",
         transition: "transform 0.4s cubic-bezier(0.22, 1, 0.36, 1)",
       }}
@@ -105,7 +105,8 @@ export default function Navbar() {
           {navLinks.map((link) => {
             const active =
               location.pathname === link.path ||
-              (link.path !== "/" && location.pathname.startsWith(link.path));
+              (link.path !== "/" &&
+                location.pathname.startsWith(link.path));
 
             return (
               <button
@@ -119,12 +120,16 @@ export default function Navbar() {
                   padding: "8px 10px",
                   borderRadius: "10px",
                   transition: "all 0.25s ease",
+                  border: "none",
+                  cursor: "pointer",
                 }}
                 onMouseEnter={(e) => {
-                  if (!active) e.target.style.color = "var(--primary)";
+                  if (!active)
+                    e.currentTarget.style.color = "var(--primary)";
                 }}
                 onMouseLeave={(e) => {
-                  if (!active) e.target.style.color = mutedTextColor;
+                  if (!active)
+                    e.currentTarget.style.color = mutedTextColor;
                 }}
               >
                 {link.label}
@@ -152,35 +157,37 @@ export default function Navbar() {
               borderRadius: "999px",
               border: "1px solid rgba(255,255,255,0.18)",
               transition: "all 0.25s ease",
+              cursor: "pointer",
             }}
             onMouseEnter={(e) => {
-              e.target.style.borderColor = "var(--primary)";
-              e.target.style.color = "var(--primary)";
+              e.currentTarget.style.borderColor = "var(--primary)";
+              e.currentTarget.style.color = "var(--primary)";
             }}
             onMouseLeave={(e) => {
-              e.target.style.borderColor = "rgba(255,255,255,0.18)";
-              e.target.style.color = navTextColor;
+              e.currentTarget.style.borderColor =
+                "rgba(255,255,255,0.18)";
+              e.currentTarget.style.color = navTextColor;
             }}
           >
             Login
           </button>
 
-         <a
-  href="http://localhost:8080/oauth2/authorization/google"
-  style={{
-    background: "var(--primary)",
-    color: "#111827",
-    fontSize: "14px",
-    fontWeight: 700,
-    padding: "12px 22px",
-    borderRadius: "999px",
-    boxShadow: "0 10px 24px rgba(244, 180, 0, 0.28)",
-    textDecoration: "none",
-    display: "inline-block"
-  }}
->
-  Get Started
-</a>
+          <a
+            href="http://localhost:8080/oauth2/authorization/google"
+            style={{
+              background: "var(--primary)",
+              color: "#111827",
+              fontSize: "14px",
+              fontWeight: 700,
+              padding: "12px 22px",
+              borderRadius: "999px",
+              boxShadow: "0 10px 24px rgba(244, 180, 0, 0.28)",
+              textDecoration: "none",
+              display: "inline-block",
+            }}
+          >
+            Get Started
+          </a>
         </div>
       </div>
     </nav>
