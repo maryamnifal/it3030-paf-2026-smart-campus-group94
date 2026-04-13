@@ -164,28 +164,22 @@ export default function Navbar() {
             Login
           </button>
 
-          <button
-            style={{
-              background: "var(--primary)",
-              color: "#111827",
-              fontSize: "14px",
-              fontWeight: 700,
-              padding: "12px 22px",
-              borderRadius: "999px",
-              boxShadow: "0 10px 24px rgba(244, 180, 0, 0.28)",
-              transition: "all 0.25s ease",
-            }}
-            onMouseEnter={(e) => {
-              e.target.style.transform = "translateY(-1px)";
-              e.target.style.background = "var(--primary-dark)";
-            }}
-            onMouseLeave={(e) => {
-              e.target.style.transform = "translateY(0)";
-              e.target.style.background = "var(--primary)";
-            }}
-          >
-            Get Started
-          </button>
+         <a
+  href="http://localhost:8080/oauth2/authorization/google"
+  style={{
+    background: "var(--primary)",
+    color: "#111827",
+    fontSize: "14px",
+    fontWeight: 700,
+    padding: "12px 22px",
+    borderRadius: "999px",
+    boxShadow: "0 10px 24px rgba(244, 180, 0, 0.28)",
+    textDecoration: "none",
+    display: "inline-block"
+  }}
+>
+  Get Started
+</a>
         </div>
       </div>
     </nav>
