@@ -31,6 +31,7 @@ export default function Navbar() {
         left: 0,
         right: 0,
         zIndex: 1000,
+        background: "#0b1220",
         transform: scrolled ? "translateY(-100%)" : "translateY(0)",
         transition: "transform 0.4s cubic-bezier(0.22, 1, 0.36, 1)",
       }}
