@@ -82,44 +82,67 @@ function Notifications() {
   };
 
   const unreadCount = notifications.filter((n) => !n.read).length;
+  const isMobile = window.innerWidth <= 900;
 
   return (
     <>
-      {/* 🔥 HERO SECTION (FULL WIDTH) */}
       <div
         style={{
           background: "linear-gradient(135deg, #0f172a 0%, #334155 100%)",
           color: "#ffffff",
-          padding: "64px 2rem",
+          padding: "140px 2rem 64px",
           borderRadius: "0 0 32px 32px",
           marginBottom: "32px",
         }}
       >
-        <div style={{ maxWidth: "1200px", margin: "0 auto" }}>
+        <div
+          style={{
+            maxWidth: "1200px",
+            margin: "0 auto",
+          }}
+        >
           <div
             style={{
               display: "inline-block",
               padding: "10px 18px",
               borderRadius: "999px",
               backgroundColor: "rgba(255,255,255,0.12)",
-              marginBottom: "16px",
+              marginBottom: "20px",
               fontWeight: "600",
+              fontSize: "14px",
+              letterSpacing: "0.3px",
             }}
           >
             NOTIFICATION MANAGEMENT
           </div>
 
-          <h1 style={{ fontSize: "48px", fontWeight: "800", margin: "0 0 12px 0" }}>
+          <h1
+            style={{
+              fontSize: isMobile ? "40px" : "64px",
+              fontWeight: "800",
+              lineHeight: "1.1",
+              margin: "0 0 20px 0",
+              maxWidth: "980px",
+            }}
+          >
             Stay updated with every important campus activity.
           </h1>
 
-          <p style={{ fontSize: "18px", color: "rgba(255,255,255,0.85)" }}>
-            View, manage, and track notifications for bookings, tickets, and system alerts.
+          <p
+            style={{
+              fontSize: "20px",
+              lineHeight: "1.7",
+              color: "rgba(255,255,255,0.85)",
+              margin: 0,
+              maxWidth: "760px",
+            }}
+          >
+            View, manage, and track notifications for bookings, tickets, and
+            system alerts.
           </p>
         </div>
       </div>
 
-      {/* 🔥 MAIN CONTENT */}
       <div
         style={{
           maxWidth: "1200px",
@@ -127,7 +150,6 @@ function Notifications() {
           padding: "0 2rem 40px",
         }}
       >
-        {/* TOP ACTION BAR */}
         <div
           style={{
             display: "flex",
@@ -139,11 +161,18 @@ function Notifications() {
           }}
         >
           <div>
-            <h2 style={{ margin: "0 0 4px 0", fontSize: "24px", fontWeight: "700" }}>
+            <h2
+              style={{
+                margin: "0 0 4px 0",
+                fontSize: "24px",
+                fontWeight: "700",
+              }}
+            >
               Your Notifications
             </h2>
             <p style={{ margin: "0", color: "#666", fontSize: "14px" }}>
-              {notifications.length} notification{notifications.length !== 1 ? "s" : ""} • {unreadCount} unread
+              {notifications.length} notification
+              {notifications.length !== 1 ? "s" : ""} • {unreadCount} unread
             </p>
           </div>
 
@@ -162,22 +191,26 @@ function Notifications() {
               boxShadow: "0 2px 8px rgba(234, 179, 8, 0.2)",
               opacity: creating ? 0.7 : 1,
             }}
-            onMouseOver={(e) => !creating && (e.target.style.boxShadow = "0 4px 12px rgba(234, 179, 8, 0.3)")}
-            onMouseOut={(e) => !creating && (e.target.style.boxShadow = "0 2px 8px rgba(234, 179, 8, 0.2)")}
+            onMouseOver={(e) =>
+              !creating &&
+              (e.target.style.boxShadow = "0 4px 12px rgba(234, 179, 8, 0.3)")
+            }
+            onMouseOut={(e) =>
+              !creating &&
+              (e.target.style.boxShadow = "0 2px 8px rgba(234, 179, 8, 0.2)")
+            }
           >
             {creating ? "Adding..." : "+ New Notification"}
           </button>
         </div>
 
-        {/* NOTIFICATIONS LIST & SUMMARY GRID */}
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "1fr 320px",
+            gridTemplateColumns: isMobile ? "1fr" : "1fr 320px",
             gap: "24px",
           }}
         >
-          {/* LEFT SIDE - NOTIFICATION LIST */}
           <div>
             {loading ? (
               <div
@@ -189,7 +222,9 @@ function Notifications() {
                   boxShadow: "0 2px 12px rgba(0,0,0,0.05)",
                 }}
               >
-                <p style={{ color: "#999", fontSize: "16px" }}>Loading notifications...</p>
+                <p style={{ color: "#999", fontSize: "16px" }}>
+                  Loading notifications...
+                </p>
               </div>
             ) : notifications.length === 0 ? (
               <div
@@ -202,7 +237,9 @@ function Notifications() {
                 }}
               >
                 <div style={{ fontSize: "48px", marginBottom: "12px" }}>🔔</div>
-                <h3 style={{ margin: "0 0 8px 0", color: "#333" }}>No notifications yet</h3>
+                <h3 style={{ margin: "0 0 8px 0", color: "#333" }}>
+                  No notifications yet
+                </h3>
                 <p style={{ margin: "0", color: "#999", fontSize: "14px" }}>
                   Your notifications will appear here
                 </p>
@@ -214,33 +251,57 @@ function Notifications() {
                     key={n.id}
                     style={{
                       background: "#ffffff",
-                      border: n.read ? "1px solid #e5e7eb" : "2px solid #eab308",
+                      border: n.read
+                        ? "1px solid #e5e7eb"
+                        : "2px solid #eab308",
                       borderRadius: "12px",
                       padding: "16px",
-                      boxShadow: n.read ? "0 1px 4px rgba(0,0,0,0.05)" : "0 4px 12px rgba(234, 179, 8, 0.15)",
+                      boxShadow: n.read
+                        ? "0 1px 4px rgba(0,0,0,0.05)"
+                        : "0 4px 12px rgba(234, 179, 8, 0.15)",
                       transition: "all 0.2s ease",
                       cursor: "pointer",
                     }}
                     onMouseOver={(e) => {
-                      e.currentTarget.style.boxShadow = n.read 
-                        ? "0 4px 12px rgba(0,0,0,0.1)" 
+                      e.currentTarget.style.boxShadow = n.read
+                        ? "0 4px 12px rgba(0,0,0,0.1)"
                         : "0 6px 16px rgba(234, 179, 8, 0.2)";
                       e.currentTarget.style.transform = "translateY(-2px)";
                     }}
                     onMouseOut={(e) => {
-                      e.currentTarget.style.boxShadow = n.read 
-                        ? "0 1px 4px rgba(0,0,0,0.05)" 
+                      e.currentTarget.style.boxShadow = n.read
+                        ? "0 1px 4px rgba(0,0,0,0.05)"
                         : "0 4px 12px rgba(234, 179, 8, 0.15)";
                       e.currentTarget.style.transform = "translateY(0)";
                     }}
                   >
-                    {/* HEADER ROW */}
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "10px" }}>
+                    <div
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "flex-start",
+                        marginBottom: "10px",
+                      }}
+                    >
                       <div style={{ flex: 1 }}>
-                        <h4 style={{ margin: "0 0 4px 0", fontSize: "16px", fontWeight: "700", color: "#1f2937" }}>
+                        <h4
+                          style={{
+                            margin: "0 0 4px 0",
+                            fontSize: "16px",
+                            fontWeight: "700",
+                            color: "#1f2937",
+                          }}
+                        >
                           {n.title}
                         </h4>
-                        <p style={{ margin: "0", fontSize: "14px", color: "#666", lineHeight: "1.5" }}>
+                        <p
+                          style={{
+                            margin: "0",
+                            fontSize: "14px",
+                            color: "#666",
+                            lineHeight: "1.5",
+                          }}
+                        >
                           {n.message}
                         </p>
                       </div>
@@ -261,7 +322,6 @@ function Notifications() {
                       </div>
                     </div>
 
-                    {/* META ROW */}
                     <div
                       style={{
                         display: "flex",
@@ -274,12 +334,17 @@ function Notifications() {
                         borderTop: "1px solid #f0f0f0",
                       }}
                     >
-                      <span style={{ background: "#f3f4f6", padding: "3px 8px", borderRadius: "4px" }}>
+                      <span
+                        style={{
+                          background: "#f3f4f6",
+                          padding: "3px 8px",
+                          borderRadius: "4px",
+                        }}
+                      >
                         {n.type}
                       </span>
                     </div>
 
-                    {/* ACTIONS */}
                     <div style={{ display: "flex", gap: "8px" }}>
                       {!n.read && (
                         <button
@@ -296,8 +361,12 @@ function Notifications() {
                             cursor: "pointer",
                             transition: "all 0.2s ease",
                           }}
-                          onMouseOver={(e) => (e.target.style.background = "#d4a206")}
-                          onMouseOut={(e) => (e.target.style.background = "#eab308")}
+                          onMouseOver={(e) =>
+                            (e.target.style.background = "#d4a206")
+                          }
+                          onMouseOut={(e) =>
+                            (e.target.style.background = "#eab308")
+                          }
                         >
                           ✓ Mark as Read
                         </button>
@@ -337,7 +406,6 @@ function Notifications() {
             )}
           </div>
 
-          {/* RIGHT SIDE - SUMMARY CARD */}
           <div
             style={{
               background: "linear-gradient(135deg, #f0f9ff 0%, #f5f3ff 100%)",
@@ -349,7 +417,14 @@ function Notifications() {
               top: "20px",
             }}
           >
-            <h3 style={{ margin: "0 0 20px 0", fontSize: "16px", fontWeight: "700", color: "#1f2937" }}>
+            <h3
+              style={{
+                margin: "0 0 20px 0",
+                fontSize: "16px",
+                fontWeight: "700",
+                color: "#1f2937",
+              }}
+            >
               Overview
             </h3>
 
@@ -362,10 +437,24 @@ function Notifications() {
                   border: "1px solid #e5e7eb",
                 }}
               >
-                <p style={{ margin: "0 0 6px 0", fontSize: "12px", color: "#999", fontWeight: "600" }}>
+                <p
+                  style={{
+                    margin: "0 0 6px 0",
+                    fontSize: "12px",
+                    color: "#999",
+                    fontWeight: "600",
+                  }}
+                >
                   TOTAL
                 </p>
-                <p style={{ margin: "0", fontSize: "24px", fontWeight: "800", color: "#0f172a" }}>
+                <p
+                  style={{
+                    margin: "0",
+                    fontSize: "24px",
+                    fontWeight: "800",
+                    color: "#0f172a",
+                  }}
+                >
                   {notifications.length}
                 </p>
               </div>
@@ -378,16 +467,37 @@ function Notifications() {
                   border: "1px solid rgba(234, 179, 8, 0.3)",
                 }}
               >
-                <p style={{ margin: "0 0 6px 0", fontSize: "12px", color: "#999", fontWeight: "600" }}>
+                <p
+                  style={{
+                    margin: "0 0 6px 0",
+                    fontSize: "12px",
+                    color: "#999",
+                    fontWeight: "600",
+                  }}
+                >
                   UNREAD
                 </p>
-                <p style={{ margin: "0", fontSize: "24px", fontWeight: "800", color: "#d4a206" }}>
+                <p
+                  style={{
+                    margin: "0",
+                    fontSize: "24px",
+                    fontWeight: "800",
+                    color: "#d4a206",
+                  }}
+                >
                   {unreadCount}
                 </p>
               </div>
 
               <div style={{ borderTop: "1px solid #e5e7eb", paddingTop: "12px" }}>
-                <p style={{ margin: "0 0 6px 0", fontSize: "12px", color: "#999", fontWeight: "600" }}>
+                <p
+                  style={{
+                    margin: "0 0 6px 0",
+                    fontSize: "12px",
+                    color: "#999",
+                    fontWeight: "600",
+                  }}
+                >
                   USER ID
                 </p>
                 <p
@@ -410,7 +520,6 @@ function Notifications() {
         </div>
       </div>
 
-      {/* MODAL FORM OVERLAY */}
       {showForm && (
         <div
           style={{
@@ -428,7 +537,6 @@ function Notifications() {
           }}
           onClick={handleCloseForm}
         >
-          {/* MODAL */}
           <div
             style={{
               background: "#ffffff",
@@ -441,13 +549,25 @@ function Notifications() {
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 style={{ margin: "0 0 24px 0", fontSize: "24px", fontWeight: "800", color: "#1f2937" }}>
+            <h2
+              style={{
+                margin: "0 0 24px 0",
+                fontSize: "24px",
+                fontWeight: "800",
+                color: "#1f2937",
+              }}
+            >
               Create New Notification
             </h2>
 
-            {/* FORM FIELDS */}
-            <div style={{ display: "flex", flexDirection: "column", gap: "20px", marginBottom: "24px" }}>
-              {/* TITLE FIELD */}
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: "20px",
+                marginBottom: "24px",
+              }}
+            >
               <div>
                 <label
                   style={{
@@ -482,7 +602,6 @@ function Notifications() {
                 />
               </div>
 
-              {/* MESSAGE FIELD */}
               <div>
                 <label
                   style={{
@@ -518,7 +637,6 @@ function Notifications() {
                 />
               </div>
 
-              {/* TYPE DROPDOWN */}
               <div>
                 <label
                   style={{
@@ -559,7 +677,6 @@ function Notifications() {
               </div>
             </div>
 
-            {/* ACTION BUTTONS */}
             <div style={{ display: "flex", gap: "12px" }}>
               <button
                 onClick={handleCloseForm}
@@ -601,8 +718,12 @@ function Notifications() {
                   transition: "all 0.2s ease",
                   opacity: creating ? 0.7 : 1,
                 }}
-                onMouseOver={(e) => !creating && (e.target.style.background = "#d4a206")}
-                onMouseOut={(e) => !creating && (e.target.style.background = "#eab308")}
+                onMouseOver={(e) =>
+                  !creating && (e.target.style.background = "#d4a206")
+                }
+                onMouseOut={(e) =>
+                  !creating && (e.target.style.background = "#eab308")
+                }
               >
                 {creating ? "Creating..." : "Create Notification"}
               </button>
