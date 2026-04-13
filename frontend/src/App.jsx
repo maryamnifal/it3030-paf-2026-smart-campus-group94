@@ -6,6 +6,9 @@ import ResourceList from "./pages/facilities/ResourceList";
 import ResourceForm from "./pages/facilities/ResourceForm";
 import ResourceDetail from "./pages/facilities/ResourceDetail";
 import Notifications from "./pages/notifications/Notifications";
+import AuthCallback from "./pages/auth/AuthCallback";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import UserDashboard from "./pages/user/UserDashboard";
 
 function App() {
   return (
@@ -15,6 +18,9 @@ function App() {
         <main style={{ flex: 1 }}>
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/auth/callback" element={<AuthCallback />} />
+            <Route path="/admin/dashboard" element={<AdminDashboard />} />
+            <Route path="/user/dashboard" element={<UserDashboard />} />
             <Route path="/facilities" element={<ResourceList />} />
             <Route path="/facilities/new" element={<ResourceForm />} />
             <Route path="/facilities/edit/:id" element={<ResourceForm />} />
