@@ -19,7 +19,8 @@ function App() {
             <Route path="/facilities/new" element={<ResourceForm />} />
             <Route path="/facilities/edit/:id" element={<ResourceForm />} />
             <Route path="/facilities/:id" element={<ResourceDetail />} />
-<Route path="/bookings" element={<BookingsPage />} />            <Route path="/incidents" element={<div style={{padding:"120px 2rem", textAlign:"center", fontFamily:"var(--font-display)", fontSize:"24px"}}>Incidents — Coming Soon</div>} />
+            <Route path="/bookings" element={<BookingsPage />} />            
+            <Route path="/incidents" element={<div style={{padding:"120px 2rem", textAlign:"center", fontFamily:"var(--font-display)", fontSize:"24px"}}>Incidents — Coming Soon</div>} />
             <Route path="/notifications" element={<div style={{padding:"120px 2rem", textAlign:"center", fontFamily:"var(--font-display)", fontSize:"24px"}}>Notifications — Coming Soon</div>} />
           </Routes>
         </main>
