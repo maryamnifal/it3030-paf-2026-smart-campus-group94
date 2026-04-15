@@ -5,6 +5,7 @@ import {
   updateResourceStatus,
 } from "../../api/resourceApi";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../../context/AuthContext";
 
 export default function ResourceList() {
   const [resources, setResources] = useState([]);
@@ -14,7 +15,10 @@ export default function ResourceList() {
     capacity: "",
   });
   const [loading, setLoading] = useState(false);
+
   const navigate = useNavigate();
+  const { role } = useAuth();
+  const isAdmin = role === "ADMIN";
 
   const fetchResources = async (customFilters = filters) => {
     setLoading(true);
@@ -105,7 +109,6 @@ export default function ResourceList() {
         paddingBottom: "90px",
       }}
     >
-      {/* Top Banner */}
       <section
         style={{
           position: "relative",
@@ -203,7 +206,6 @@ export default function ResourceList() {
         </div>
       </section>
 
-      {/* Main Content */}
       <section
         style={{
           maxWidth: "1200px",
@@ -211,7 +213,6 @@ export default function ResourceList() {
           padding: "40px 2rem 0",
         }}
       >
-        {/* Filters */}
         <div style={{ ...pageCardStyle, padding: "28px", marginBottom: "24px" }}>
           <div style={sectionPillStyle}>Search & Filter</div>
           <div
@@ -354,7 +355,6 @@ export default function ResourceList() {
           </div>
         </div>
 
-        {/* Actions row */}
         <div
           style={{
             display: "flex",
@@ -389,25 +389,26 @@ export default function ResourceList() {
             </div>
           </div>
 
-          <button
-            onClick={() => navigate("/facilities/new")}
-            style={{
-              background: "var(--secondary)",
-              color: "#fff",
-              border: "none",
-              padding: "14px 22px",
-              borderRadius: "999px",
-              fontSize: "14px",
-              fontWeight: 700,
-              cursor: "pointer",
-              boxShadow: "0 10px 24px rgba(22, 58, 99, 0.18)",
-            }}
-          >
-            + Add New Resource
-          </button>
+          {isAdmin && (
+            <button
+              onClick={() => navigate("/facilities/new")}
+              style={{
+                background: "var(--secondary)",
+                color: "#fff",
+                border: "none",
+                padding: "14px 22px",
+                borderRadius: "999px",
+                fontSize: "14px",
+                fontWeight: 700,
+                cursor: "pointer",
+                boxShadow: "0 10px 24px rgba(22, 58, 99, 0.18)",
+              }}
+            >
+              + Add New Resource
+            </button>
+          )}
         </div>
 
-        {/* Resource grid */}
         {loading ? (
           <div
             style={{
@@ -650,57 +651,61 @@ export default function ResourceList() {
                         View
                       </button>
 
-                      <button
-                        onClick={() => navigate(`/facilities/edit/${r.id}`)}
-                        style={{
-                          background: "#fff",
-                          color: "var(--text-dark)",
-                          border: "1px solid rgba(15, 23, 42, 0.08)",
-                          padding: "11px 16px",
-                          borderRadius: "999px",
-                          fontSize: "13px",
-                          fontWeight: 600,
-                          cursor: "pointer",
-                        }}
-                      >
-                        Edit
-                      </button>
+                      {isAdmin && (
+                        <>
+                          <button
+                            onClick={() => navigate(`/facilities/edit/${r.id}`)}
+                            style={{
+                              background: "#fff",
+                              color: "var(--text-dark)",
+                              border: "1px solid rgba(15, 23, 42, 0.08)",
+                              padding: "11px 16px",
+                              borderRadius: "999px",
+                              fontSize: "13px",
+                              fontWeight: 600,
+                              cursor: "pointer",
+                            }}
+                          >
+                            Edit
+                          </button>
 
-                      <button
-                        onClick={() => handleStatusToggle(r.id, r.status)}
-                        style={{
-                          background: "#fff",
-                          color: isActive ? "#92400e" : "#166534",
-                          border: `1px solid ${
-                            isActive
-                              ? "rgba(217, 119, 6, 0.18)"
-                              : "rgba(5, 150, 105, 0.18)"
-                          }`,
-                          padding: "11px 16px",
-                          borderRadius: "999px",
-                          fontSize: "13px",
-                          fontWeight: 600,
-                          cursor: "pointer",
-                        }}
-                      >
-                        {isActive ? "Deactivate" : "Activate"}
-                      </button>
+                          <button
+                            onClick={() => handleStatusToggle(r.id, r.status)}
+                            style={{
+                              background: "#fff",
+                              color: isActive ? "#92400e" : "#166534",
+                              border: `1px solid ${
+                                isActive
+                                  ? "rgba(217, 119, 6, 0.18)"
+                                  : "rgba(5, 150, 105, 0.18)"
+                              }`,
+                              padding: "11px 16px",
+                              borderRadius: "999px",
+                              fontSize: "13px",
+                              fontWeight: 600,
+                              cursor: "pointer",
+                            }}
+                          >
+                            {isActive ? "Deactivate" : "Activate"}
+                          </button>
 
-                      <button
-                        onClick={() => handleDelete(r.id)}
-                        style={{
-                          background: "#fff",
-                          color: "#dc2626",
-                          border: "1px solid rgba(220, 38, 38, 0.15)",
-                          padding: "11px 16px",
-                          borderRadius: "999px",
-                          fontSize: "13px",
-                          fontWeight: 600,
-                          cursor: "pointer",
-                        }}
-                      >
-                        Delete
-                      </button>
+                          <button
+                            onClick={() => handleDelete(r.id)}
+                            style={{
+                              background: "#fff",
+                              color: "#dc2626",
+                              border: "1px solid rgba(220, 38, 38, 0.15)",
+                              padding: "11px 16px",
+                              borderRadius: "999px",
+                              fontSize: "13px",
+                              fontWeight: 600,
+                              cursor: "pointer",
+                            }}
+                          >
+                            Delete
+                          </button>
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>
