@@ -9,6 +9,18 @@ const api = axios.create({
     }
 });
 
+// ✅ Add interceptor to attach token automatically
+api.interceptors.request.use(
+    (config) => {
+        const token = localStorage.getItem("token");
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+        }
+        return config;
+    },
+    (error) => Promise.reject(error)
+);
+
 // Get all resources with optional filters
 export const getAllResources = (filters = {}) => {
     return api.get('/resources', { params: filters });
@@ -19,22 +31,22 @@ export const getResourceById = (id) => {
     return api.get(`/resources/${id}`);
 };
 
-// Create a new resource
+// Create a new resource (ADMIN)
 export const createResource = (data) => {
     return api.post('/resources', data);
 };
 
-// Update a resource
+// Update a resource (ADMIN)
 export const updateResource = (id, data) => {
     return api.put(`/resources/${id}`, data);
 };
 
-// Update resource status
+// Update resource status (ADMIN)
 export const updateResourceStatus = (id, status) => {
     return api.patch(`/resources/${id}/status?status=${status}`);
 };
 
-// Delete a resource
+// Delete a resource (ADMIN)
 export const deleteResource = (id) => {
     return api.delete(`/resources/${id}`);
 };

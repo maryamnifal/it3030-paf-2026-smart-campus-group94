@@ -63,6 +63,12 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
         String token = jwtUtil.generateToken(email, user.getRole(), name);
 
         // Redirect to frontend with token and role
-        response.sendRedirect(frontendUrl + "/auth/callback?token=" + token + "&role=" + user.getRole() + "&name=" + name);
+        response.sendRedirect(
+         frontendUrl
+             + "/auth/callback?token=" + token
+             + "&role=" + user.getRole()
+             + "&name=" + java.net.URLEncoder.encode(name, java.nio.charset.StandardCharsets.UTF_8)
+             + "&userId=" + user.getId()
+        );
     }
 }

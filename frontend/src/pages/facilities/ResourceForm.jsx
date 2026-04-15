@@ -5,6 +5,7 @@ import {
   getResourceById,
   updateResource,
 } from "../../api/resourceApi";
+import { useAuth } from "../../context/AuthContext";
 
 export default function ResourceForm() {
   const { id } = useParams();
@@ -25,6 +26,14 @@ export default function ResourceForm() {
 
   const [errors, setErrors] = useState({});
   const [uploading, setUploading] = useState(false);
+  const { role } = useAuth();
+  const isAdmin = role === "ADMIN";
+
+  useEffect(() => {
+    if (!isAdmin) {
+      navigate("/");
+   }
+  }, [isAdmin, navigate]);
 
   useEffect(() => {
     if (isEdit) {
@@ -171,6 +180,7 @@ export default function ResourceForm() {
   };
 
   return (
+    
     <div
       style={{
         minHeight: "100vh",
