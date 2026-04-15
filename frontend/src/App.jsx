@@ -1,10 +1,14 @@
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import Home from "./pages/Home";
 import ResourceList from "./pages/facilities/ResourceList";
 import ResourceForm from "./pages/facilities/ResourceForm";
 import ResourceDetail from "./pages/facilities/ResourceDetail";
+import Notifications from "./pages/notifications/Notifications";
+import AuthCallback from "./pages/auth/AuthCallback";
+import AdminDashboard from "./pages/admin/AdminDashboard";
+import UserDashboard from "./pages/user/UserDashboard";
 import BookingsPage from "./pages/Bookings/BookingsPage";
 
 function App() {
@@ -15,11 +19,14 @@ function App() {
         <main style={{ flex: 1 }}>
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/auth/callback" element={<AuthCallback />} />
+            <Route path="/admin/dashboard" element={<AdminDashboard />} />
+            <Route path="/user/dashboard" element={<UserDashboard />} />
             <Route path="/facilities" element={<ResourceList />} />
             <Route path="/facilities/new" element={<ResourceForm />} />
             <Route path="/facilities/edit/:id" element={<ResourceForm />} />
             <Route path="/facilities/:id" element={<ResourceDetail />} />
-            <Route path="/bookings" element={<BookingsPage />} />            
+            <Route path="/bookings" element={<BookingsPage />} />
             <Route path="/incidents" element={<div style={{padding:"120px 2rem", textAlign:"center", fontFamily:"var(--font-display)", fontSize:"24px"}}>Incidents — Coming Soon</div>} />
             <Route path="/notifications" element={<div style={{padding:"120px 2rem", textAlign:"center", fontFamily:"var(--font-display)", fontSize:"24px"}}>Notifications — Coming Soon</div>} />
           </Routes>
