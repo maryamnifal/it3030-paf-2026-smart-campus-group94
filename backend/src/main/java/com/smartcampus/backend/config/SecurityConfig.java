@@ -5,6 +5,7 @@ import com.smartcampus.backend.security.OAuth2SuccessHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -30,19 +31,37 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable())
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
             .sessionManagement(session ->
-                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            )
             .authorizeHttpRequests(auth -> auth
-                // Public endpoints
-                .requestMatchers("/api/resources").permitAll()
-                .requestMatchers("/api/resources/{id}").permitAll()
+
+                // OAuth public
                 .requestMatchers("/oauth2/**", "/login/**").permitAll()
-                // Admin only
-                .requestMatchers("/api/resources/create").hasRole("ADMIN")
-                .requestMatchers("/api/bookings").hasRole("ADMIN")
-                .requestMatchers("/api/bookings/*/approve").hasRole("ADMIN")
-                .requestMatchers("/api/bookings/*/reject").hasRole("ADMIN")
-                .requestMatchers("/api/tickets").hasRole("ADMIN")
-                // Authenticated users
+
+                // Public resource reads
+                .requestMatchers(HttpMethod.GET, "/api/resources").permitAll()
+                .requestMatchers(HttpMethod.GET, "/api/resources/**").permitAll()
+
+                // Admin resource writes
+                .requestMatchers(HttpMethod.POST, "/api/resources").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/resources/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PATCH, "/api/resources/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/resources/**").hasRole("ADMIN")
+
+                // Booking rules
+                .requestMatchers(HttpMethod.GET, "/api/bookings/my").authenticated()
+                .requestMatchers(HttpMethod.POST, "/api/bookings").authenticated()
+                .requestMatchers(HttpMethod.GET, "/api/bookings").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PATCH, "/api/bookings/*/approve").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PATCH, "/api/bookings/*/reject").hasRole("ADMIN")
+
+                // Ticket rules
+                .requestMatchers(HttpMethod.POST, "/api/tickets").authenticated()
+                .requestMatchers(HttpMethod.GET, "/api/tickets/my").authenticated()
+                .requestMatchers(HttpMethod.GET, "/api/tickets").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PATCH, "/api/tickets/**").hasRole("ADMIN")
+
+                // Everything else requires login
                 .anyRequest().authenticated()
             )
             .oauth2Login(oauth2 -> oauth2
@@ -60,10 +79,9 @@ public class SecurityConfig {
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(List.of("*"));
         config.setAllowCredentials(true);
-        return source -> {
-            UrlBasedCorsConfigurationSource s = new UrlBasedCorsConfigurationSource();
-            s.registerCorsConfiguration("/**", config);
-            return s.getCorsConfiguration(source);
-        };
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
     }
 }
