@@ -6,8 +6,6 @@ import {
   cancelBooking,
 } from "../../api/bookingApi";
 
-const CURRENT_USER = localStorage.getItem("userId");
-
 const STATUS_CONFIG = {
   PENDING: { label: "Pending", bg: "#fef9c3", color: "#854d0e" },
   APPROVED: { label: "Approved", bg: "#dcfce7", color: "#166534" },
@@ -103,6 +101,8 @@ function BookingForm({ onSuccess, onCancel }) {
   const selected = resources.find((r) => r.id === form.resourceId);
 
   const handleSubmit = async () => {
+    const currentUser = localStorage.getItem("userId");
+
     setError("");
 
     if (
@@ -121,7 +121,7 @@ function BookingForm({ onSuccess, onCancel }) {
       return;
     }
 
-    if (!CURRENT_USER) {
+    if (!currentUser) {
       setError("User session not found. Please log in again.");
       return;
     }
@@ -131,7 +131,7 @@ function BookingForm({ onSuccess, onCancel }) {
     try {
       await createBooking({
         ...form,
-        userId: CURRENT_USER,
+        userId: currentUser,
         startTime: form.startTime + ":00",
         endTime: form.endTime + ":00",
         expectedAttendees: parseInt(form.expectedAttendees, 10),
@@ -205,7 +205,9 @@ function BookingForm({ onSuccess, onCancel }) {
                 disabled={loadingResources}
               >
                 <option value="">
-                  {loadingResources ? "Loading resources..." : "Select a resource..."}
+                  {loadingResources
+                    ? "Loading resources..."
+                    : "Select a resource..."}
                 </option>
                 {resources.map((r) => (
                   <option key={r.id} value={r.id}>
@@ -223,8 +225,8 @@ function BookingForm({ onSuccess, onCancel }) {
                     display: "block",
                   }}
                 >
-                  No active resources found. Please add resources in the Facilities
-                  module first.
+                  No active resources found. Please add resources in the
+                  Facilities module first.
                 </span>
               )}
             </div>
@@ -354,8 +356,8 @@ function BookingForm({ onSuccess, onCancel }) {
                   marginTop: "-12px",
                 }}
               >
-                {selected.type?.replaceAll("_", " ")} · {selected.location} · cap.{" "}
-                {selected.capacity}
+                {selected.type?.replaceAll("_", " ")} · {selected.location} ·
+                cap. {selected.capacity}
               </div>
             )}
 
@@ -547,7 +549,11 @@ function BookingCard({ booking, onCancel, resources }) {
 
   return (
     <div
-      style={{ ...pageCardStyle, overflow: "hidden", transition: "all 0.25s ease" }}
+      style={{
+        ...pageCardStyle,
+        overflow: "hidden",
+        transition: "all 0.25s ease",
+      }}
       onMouseEnter={(e) => {
         e.currentTarget.style.transform = "translateY(-6px)";
         e.currentTarget.style.boxShadow = "0 18px 40px rgba(15,23,42,0.08)";
@@ -749,9 +755,17 @@ export default function BookingsPage() {
   };
 
   const fetchBookings = async () => {
+    const currentUser = localStorage.getItem("userId");
+
+    if (!currentUser) {
+      setBookings([]);
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
-      const res = await getMyBookings(CURRENT_USER);
+      const res = await getMyBookings(currentUser);
       setBookings(Array.isArray(res.data) ? res.data : []);
     } catch (error) {
       console.error("Error fetching bookings:", error);
@@ -792,9 +806,8 @@ export default function BookingsPage() {
     CANCELLED: bookings.filter((b) => b.status === "CANCELLED").length,
   };
 
-  let filtered = filter === "ALL"
-    ? bookings
-    : bookings.filter((b) => b.status === filter);
+  let filtered =
+    filter === "ALL" ? bookings : bookings.filter((b) => b.status === filter);
 
   filtered = filtered.filter((b) => {
     const resource = resources.find((r) => r.id === b.resourceId);
@@ -966,9 +979,13 @@ export default function BookingsPage() {
             <button
               onClick={() => setShowForm((v) => !v)}
               style={{
-                background: showForm ? "rgba(255,255,255,0.1)" : "var(--primary)",
+                background: showForm
+                  ? "rgba(255,255,255,0.1)"
+                  : "var(--primary)",
                 color: showForm ? "#fff" : "#111827",
-                border: showForm ? "1px solid rgba(255,255,255,0.2)" : "none",
+                border: showForm
+                  ? "1px solid rgba(255,255,255,0.2)"
+                  : "none",
                 padding: "14px 26px",
                 borderRadius: "999px",
                 fontSize: "14px",
@@ -1033,7 +1050,9 @@ export default function BookingsPage() {
             <div style={{ fontSize: "14px", color: "var(--text-light)" }}>
               {loading
                 ? "Loading..."
-                : `${filtered.length} booking${filtered.length !== 1 ? "s" : ""} found`}
+                : `${filtered.length} booking${
+                    filtered.length !== 1 ? "s" : ""
+                  } found`}
             </div>
           </div>
 
@@ -1255,32 +1274,34 @@ export default function BookingsPage() {
               marginBottom: "24px",
             }}
           >
-            {["ALL", "PENDING", "APPROVED", "REJECTED", "CANCELLED"].map((s) => (
-              <button
-                key={s}
-                onClick={() => setFilter(s)}
-                style={{
-                  background: filter === s ? "var(--primary)" : "#fff",
-                  color: filter === s ? "#111827" : "var(--text-light)",
-                  border:
-                    filter === s
-                      ? "none"
-                      : "1px solid rgba(15,23,42,0.08)",
-                  borderRadius: "999px",
-                  padding: "8px 18px",
-                  fontSize: "13px",
-                  fontWeight: filter === s ? 700 : 500,
-                  cursor: "pointer",
-                  boxShadow:
-                    filter === s
-                      ? "0 4px 12px rgba(244,180,0,0.2)"
-                      : "none",
-                  transition: "all 0.2s",
-                }}
-              >
-                {s === "ALL" ? "All" : STATUS_CONFIG[s].label} ({counts[s]})
-              </button>
-            ))}
+            {["ALL", "PENDING", "APPROVED", "REJECTED", "CANCELLED"].map(
+              (s) => (
+                <button
+                  key={s}
+                  onClick={() => setFilter(s)}
+                  style={{
+                    background: filter === s ? "var(--primary)" : "#fff",
+                    color: filter === s ? "#111827" : "var(--text-light)",
+                    border:
+                      filter === s
+                        ? "none"
+                        : "1px solid rgba(15,23,42,0.08)",
+                    borderRadius: "999px",
+                    padding: "8px 18px",
+                    fontSize: "13px",
+                    fontWeight: filter === s ? 700 : 500,
+                    cursor: "pointer",
+                    boxShadow:
+                      filter === s
+                        ? "0 4px 12px rgba(244,180,0,0.2)"
+                        : "none",
+                    transition: "all 0.2s",
+                  }}
+                >
+                  {s === "ALL" ? "All" : STATUS_CONFIG[s].label} ({counts[s]})
+                </button>
+              )
+            )}
           </div>
 
           {loading ? (
