@@ -1,6 +1,5 @@
 package com.smartcampus.backend.dto;
 
-import jakarta.validation.constraints.Future;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -8,18 +7,9 @@ import jakarta.validation.constraints.NotNull;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
-public class BookingRequestDTO {
-
-    @NotBlank(message = "Resource ID is required")
-    private String resourceId;
-
-    @NotBlank(message = "User ID is required")
-    private String userId;
-
-    private String userName;
+public class BookingUpdateDTO {
 
     @NotNull(message = "Date is required")
-    @Future(message = "Booking date must be in the future")
     private LocalDate date;
 
     @NotNull(message = "Start time is required")
@@ -35,15 +25,6 @@ public class BookingRequestDTO {
     private int expectedAttendees;
 
     // Getters and Setters
-    public String getResourceId() { return resourceId; }
-    public void setResourceId(String resourceId) { this.resourceId = resourceId; }
-
-    public String getUserId() { return userId; }
-    public void setUserId(String userId) { this.userId = userId; }
-
-    public String getUserName() { return userName; }
-    public void setUserName(String userName) { this.userName = userName; }
-
     public LocalDate getDate() { return date; }
     public void setDate(LocalDate date) { this.date = date; }
 
