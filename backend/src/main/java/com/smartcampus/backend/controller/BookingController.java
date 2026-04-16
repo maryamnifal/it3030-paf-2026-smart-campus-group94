@@ -1,6 +1,7 @@
 package com.smartcampus.backend.controller;
 
 import com.smartcampus.backend.dto.BookingRequestDTO;
+import com.smartcampus.backend.dto.BookingUpdateDTO;
 import com.smartcampus.backend.dto.BookingResponseDTO;
 import com.smartcampus.backend.dto.StatusUpdateDTO;
 import com.smartcampus.backend.service.BookingService;
@@ -43,7 +44,16 @@ public class BookingController {
         return ResponseEntity.ok(bookingService.getAllBookings());
     }
 
-    // 4. Approve a booking
+    // 4. Update a booking
+    @PutMapping("/{id}")
+    public ResponseEntity<BookingResponseDTO> updateBooking(
+            @PathVariable String id,
+            @Valid @RequestBody BookingUpdateDTO request) {
+        BookingResponseDTO response = bookingService.updateBooking(id, request);
+        return ResponseEntity.ok(response);
+    }
+
+    // 5. Approve a booking
     @PutMapping("/{id}/approve")
     public ResponseEntity<BookingResponseDTO> approveBooking(
             @PathVariable String id) {
