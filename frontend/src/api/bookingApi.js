@@ -22,6 +22,8 @@ export const createBooking = (data) => api.post("/bookings", data);
 
 export const getMyBookings = (userId) => api.get(`/bookings/my/${userId}`);
 
+export const updateBooking = (id, data) => api.put(`/bookings/${id}`, data);
+
 export const getAllBookings = () => api.get("/bookings");
 
 export const approveBooking = (id) => api.put(`/bookings/${id}/approve`);
