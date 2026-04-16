@@ -4,6 +4,7 @@ import {
   createBooking,
   getMyBookings,
   cancelBooking,
+  updateBooking,
 } from "../../api/bookingApi";
 
 const STATUS_CONFIG = {
@@ -102,6 +103,7 @@ function BookingForm({ onSuccess, onCancel }) {
 
   const handleSubmit = async () => {
     const currentUser = localStorage.getItem("userId");
+    const currentUserName = localStorage.getItem("name");
 
     setError("");
 
@@ -132,6 +134,7 @@ function BookingForm({ onSuccess, onCancel }) {
       await createBooking({
         ...form,
         userId: currentUser,
+        userName: currentUserName || currentUser,
         startTime: form.startTime + ":00",
         endTime: form.endTime + ":00",
         expectedAttendees: parseInt(form.expectedAttendees, 10),
@@ -542,10 +545,215 @@ function BookingForm({ onSuccess, onCancel }) {
   );
 }
 
-function BookingCard({ booking, onCancel, resources }) {
+function EditBookingModal({ booking, resources, onSave, onClose }) {
+  const [form, setForm] = useState({
+    date: booking.date || "",
+    startTime: booking.startTime?.slice(0, 5) || "",
+    endTime: booking.endTime?.slice(0, 5) || "",
+    purpose: booking.purpose || "",
+    expectedAttendees: booking.expectedAttendees || 1,
+  });
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+  const selected = resources.find(r => r.id === booking.resourceId);
+
+  const handleSubmit = async () => {
+    setError("");
+    if (!form.date || !form.startTime || !form.endTime || !form.purpose) {
+      setError("Please fill in all required fields.");
+      return;
+    }
+    if (form.startTime >= form.endTime) {
+      setError("End time must be after start time.");
+      return;
+    }
+    setLoading(true);
+    try {
+      await updateBooking(booking.id, {
+        date: form.date,
+        startTime: form.startTime + ":00",
+        endTime: form.endTime + ":00",
+        purpose: form.purpose,
+        expectedAttendees: parseInt(form.expectedAttendees, 10),
+      });
+      onSave();
+    } catch (e) {
+      setError(e.response?.data?.message || e.response?.data?.error || "Failed to update booking");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div
+      style={{
+        position: "fixed",
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        background: "rgba(0,0,0,0.5)",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        zIndex: 9999,
+      }}
+      onClick={onClose}
+    >
+      <div
+        style={{
+          background: "#fff",
+          borderRadius: "20px",
+          padding: "32px",
+          maxWidth: "600px",
+          width: "90%",
+          maxHeight: "80vh",
+          overflowY: "auto",
+          boxShadow: "0 20px 60px rgba(0,0,0,0.3)",
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "24px" }}>
+          <h2 style={{ fontSize: "22px", fontWeight: 800, color: "var(--text-dark)", margin: 0 }}>Edit Booking</h2>
+          <button
+            onClick={onClose}
+            style={{
+              background: "none",
+              border: "none",
+              fontSize: "24px",
+              cursor: "pointer",
+              color: "var(--text-light)",
+            }}
+          >
+            ✕
+          </button>
+        </div>
+
+        {error && (
+          <div
+            style={{
+              background: "#fee2e2",
+              border: "1px solid rgba(220,38,38,0.2)",
+              borderRadius: "12px",
+              padding: "12px 16px",
+              color: "#991b1b",
+              fontSize: "14px",
+              marginBottom: "20px",
+            }}
+          >
+            {error}
+          </div>
+        )}
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px", marginBottom: "20px" }}>
+          <div style={{ gridColumn: "1 / -1" }}>
+            <label style={labelStyle}>Resource: {selected?.name || booking.resourceId}</label>
+            <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>
+              {selected?.type?.replaceAll("_", " ")} · {selected?.location} · cap. {selected?.capacity}
+            </div>
+          </div>
+
+          <div>
+            <label style={labelStyle}>Date *</label>
+            <input
+              type="date"
+              value={form.date}
+              onChange={(e) => set("date", e.target.value)}
+              style={inputStyle}
+            />
+          </div>
+
+          <div>
+            <label style={labelStyle}>Start Time *</label>
+            <input
+              type="time"
+              value={form.startTime}
+              onChange={(e) => set("startTime", e.target.value)}
+              style={inputStyle}
+            />
+          </div>
+
+          <div>
+            <label style={labelStyle}>End Time *</label>
+            <input
+              type="time"
+              value={form.endTime}
+              onChange={(e) => set("endTime", e.target.value)}
+              style={inputStyle}
+            />
+          </div>
+
+          <div style={{ gridColumn: "1 / -1" }}>
+            <label style={labelStyle}>Purpose *</label>
+            <input
+              type="text"
+              value={form.purpose}
+              onChange={(e) => set("purpose", e.target.value)}
+              style={inputStyle}
+            />
+          </div>
+
+          <div style={{ gridColumn: "1 / -1" }}>
+            <label style={labelStyle}>Expected Attendees *</label>
+            <input
+              type="number"
+              min="1"
+              value={form.expectedAttendees}
+              onChange={(e) => set("expectedAttendees", e.target.value)}
+              style={inputStyle}
+            />
+          </div>
+        </div>
+
+        <div style={{ display: "flex", gap: "12px", justifyContent: "flex-end" }}>
+          <button
+            onClick={onClose}
+            style={{
+              background: "#f3f4f6",
+              color: "var(--text-dark)",
+              border: "none",
+              padding: "12px 24px",
+              borderRadius: "999px",
+              fontSize: "14px",
+              fontWeight: 600,
+              cursor: "pointer",
+              transition: "all 0.2s",
+            }}
+            onMouseEnter={(e) => (e.target.style.background = "#e5e7eb")}
+            onMouseLeave={(e) => (e.target.style.background = "#f3f4f6")}
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSubmit}
+            disabled={loading}
+            style={{
+              background: "var(--primary)",
+              color: "#111827",
+              border: "none",
+              padding: "12px 24px",
+              borderRadius: "999px",
+              fontSize: "14px",
+              fontWeight: 600,
+              cursor: loading ? "not-allowed" : "pointer",
+              opacity: loading ? 0.7 : 1,
+              transition: "all 0.2s",
+            }}
+          >
+            {loading ? "Saving..." : "Save Changes"}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function BookingCard({ booking, onCancel, onEdit, resources }) {
   const resource = resources.find((r) => r.id === booking.resourceId);
   const canCancel =
     booking.status === "PENDING" || booking.status === "APPROVED";
+  const canEdit = canCancel;
 
   return (
     <div
@@ -703,6 +911,30 @@ function BookingCard({ booking, onCancel, resources }) {
         )}
 
         <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+          {canEdit && (
+            <button
+              onClick={() => onEdit(booking)}
+              style={{
+                background: "#fff",
+                color: "var(--primary)",
+                border: "1px solid rgba(244,180,0,0.3)",
+                padding: "10px 18px",
+                borderRadius: "999px",
+                fontSize: "13px",
+                fontWeight: 600,
+                cursor: "pointer",
+                transition: "all 0.2s",
+              }}
+              onMouseEnter={(e) => {
+                e.target.style.background = "rgba(244,180,0,0.1)";
+              }}
+              onMouseLeave={(e) => {
+                e.target.style.background = "#fff";
+              }}
+            >
+              ✏️ Edit
+            </button>
+          )}
           {canCancel && (
             <button
               onClick={() => onCancel(booking.id)}
@@ -742,6 +974,7 @@ export default function BookingsPage() {
   const [toast, setToast] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [showAdvanced, setShowAdvanced] = useState(false);
+  const [editBooking, setEditBooking] = useState(null);
   const [advancedFilters, setAdvancedFilters] = useState({
     bookingId: "",
     resourceId: "",
@@ -868,6 +1101,19 @@ export default function BookingsPage() {
         >
           ✓ {toast}
         </div>
+      )}
+
+      {editBooking && (
+        <EditBookingModal
+          booking={editBooking}
+          resources={resources}
+          onSave={() => {
+            showToast("Booking updated successfully!");
+            setEditBooking(null);
+            fetchBookings();
+          }}
+          onClose={() => setEditBooking(null)}
+        />
       )}
 
       <section
@@ -1353,6 +1599,7 @@ export default function BookingsPage() {
                   key={b.id}
                   booking={b}
                   onCancel={handleCancel}
+                  onEdit={setEditBooking}
                   resources={resources}
                 />
               ))}

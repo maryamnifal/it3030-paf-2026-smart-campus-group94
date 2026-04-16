@@ -1,6 +1,7 @@
 package com.smartcampus.backend.service;
 
 import com.smartcampus.backend.dto.BookingRequestDTO;
+import com.smartcampus.backend.dto.BookingUpdateDTO;
 import com.smartcampus.backend.dto.BookingResponseDTO;
 import com.smartcampus.backend.dto.StatusUpdateDTO;
 import com.smartcampus.backend.exception.ConflictException;
@@ -39,6 +40,7 @@ public class BookingService {
         Booking booking = new Booking();
         booking.setResourceId(request.getResourceId());
         booking.setUserId(request.getUserId());
+        booking.setUserName(request.getUserName());
         booking.setDate(request.getDate());
         booking.setStartTime(request.getStartTime());
         booking.setEndTime(request.getEndTime());
@@ -64,6 +66,42 @@ public class BookingService {
                 .stream()
                 .map(this::mapToResponse)
                 .collect(Collectors.toList());
+    }
+
+    // Update a booking (only for PENDING or APPROVED bookings)
+    public BookingResponseDTO updateBooking(String id, BookingUpdateDTO request) {
+        Booking booking = bookingRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Booking not found with id: " + id));
+
+        // Only allow editing PENDING or APPROVED bookings
+        if (booking.getStatus() != BookingStatus.PENDING && booking.getStatus() != BookingStatus.APPROVED) {
+            throw new ConflictException("Cannot edit a " + booking.getStatus() + " booking.");
+        }
+
+        // Check for conflicts with the new time slot (excluding current booking)
+        List<Booking> conflicts = bookingRepository.findConflictingBookings(
+                booking.getResourceId(),
+                request.getDate(),
+                request.getStartTime(),
+                request.getEndTime()
+        );
+
+        // Remove current booking from conflicts check
+        conflicts = conflicts.stream()
+                .filter(b -> !b.getId().equals(id))
+                .collect(Collectors.toList());
+
+        if (!conflicts.isEmpty()) {
+            throw new ConflictException("This resource is already booked for the new selected time slot.");
+        }
+
+        booking.setDate(request.getDate());
+        booking.setStartTime(request.getStartTime());
+        booking.setEndTime(request.getEndTime());
+        booking.setPurpose(request.getPurpose());
+        booking.setExpectedAttendees(request.getExpectedAttendees());
+
+        return mapToResponse(bookingRepository.save(booking));
     }
 
     // Approve a booking
@@ -108,6 +146,7 @@ public class BookingService {
         response.setId(booking.getId());
         response.setResourceId(booking.getResourceId());
         response.setUserId(booking.getUserId());
+        response.setUserName(booking.getUserName());
         response.setDate(booking.getDate());
         response.setStartTime(booking.getStartTime());
         response.setEndTime(booking.getEndTime());
