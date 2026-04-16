@@ -37,8 +37,7 @@ public class SecurityConfig {
 
                 // OAuth public
                 .requestMatchers("/oauth2/**", "/login/**").permitAll()
-
-                // Public resource reads
+               // Public resource reads
                 .requestMatchers(HttpMethod.GET, "/api/resources").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/resources/**").permitAll()
 
@@ -55,13 +54,20 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.PATCH, "/api/bookings/*/approve").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.PATCH, "/api/bookings/*/reject").hasRole("ADMIN")
 
-                // Ticket rules
+                // Module C - Ticket rules (admin only)
+                .requestMatchers(HttpMethod.GET, "/api/tickets").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/tickets/**").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PATCH, "/api/tickets/*/assign").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PATCH, "/api/tickets/*/status").hasRole("ADMIN")
+
+                // Module C - Ticket rules (authenticated users)
                 .requestMatchers(HttpMethod.POST, "/api/tickets").authenticated()
                 .requestMatchers(HttpMethod.GET, "/api/tickets/my").authenticated()
-                .requestMatchers(HttpMethod.GET, "/api/tickets").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.PATCH, "/api/tickets/**").hasRole("ADMIN")
-
-                // Everything else requires login
+                .requestMatchers(HttpMethod.GET, "/api/tickets/**").authenticated()
+                .requestMatchers(HttpMethod.POST, "/api/tickets/*/comments").authenticated()
+                .requestMatchers(HttpMethod.PUT, "/api/tickets/*/comments/**").authenticated()
+                .requestMatchers(HttpMethod.DELETE, "/api/tickets/*/comments/**").authenticated()
+                .requestMatchers(HttpMethod.POST, "/api/tickets/*/attachments").authenticated()
                 .anyRequest().authenticated()
             )
             .oauth2Login(oauth2 -> oauth2
