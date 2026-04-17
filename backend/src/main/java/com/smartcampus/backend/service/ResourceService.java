@@ -47,17 +47,38 @@ public class ResourceService {
 
     // Get resources by type
     public List<Resource> getResourcesByType(String type) {
-        return resourceRepository.findByType(type);
+        return resourceRepository.findByTypeIgnoreCase(type);
     }
 
     // Get resources by location
     public List<Resource> getResourcesByLocation(String location) {
-        return resourceRepository.findByLocation(location);
+        return resourceRepository.findByLocationContainingIgnoreCase(location);
     }
 
     // Get resources by minimum capacity
     public List<Resource> getResourcesByCapacity(int capacity) {
         return resourceRepository.findByCapacityGreaterThanEqual(capacity);
+    }
+
+    // Get filtered resources
+    public List<Resource> getFilteredResources(String type, String location, Integer capacity) {
+        List<Resource> resources = resourceRepository.findAll();
+
+        return resources.stream()
+                .filter(resource ->
+                        type == null || type.isBlank() ||
+                        (resource.getType() != null &&
+                         resource.getType().toString().equalsIgnoreCase(type))
+                )
+                .filter(resource ->
+                        location == null || location.isBlank() ||
+                        (resource.getLocation() != null &&
+                         resource.getLocation().toLowerCase().contains(location.toLowerCase()))
+                )
+                .filter(resource ->
+                        capacity == null || resource.getCapacity() >= capacity
+                )
+                .toList();
     }
 
     // Update a resource

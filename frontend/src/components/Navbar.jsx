@@ -1,13 +1,15 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
+import { Bell } from "lucide-react"; // ✅ NEW
 
 const navLinks = [
   { label: "Home", path: "/" },
+  { label: "Dashboard", path: "/dashboard" },
   { label: "Facilities", path: "/facilities" },
   { label: "Bookings", path: "/bookings" },
   { label: "Incidents", path: "/incidents" },
-  { label: "Notifications", path: "/notifications" },
+  // ❌ Removed Notifications
 ];
 
 export default function Navbar() {
@@ -16,34 +18,34 @@ export default function Navbar() {
   const location = useLocation();
   const { token, name, role, logout } = useAuth();
 
+  const isLoginPage = location.pathname === "/login";
+
+  // 🔔 mock unread count (replace later with API)
+  const unreadCount = 3;
+
   useEffect(() => {
-    const onScroll = () => setScrolled(window.scrollY > 20);
+    const onScroll = () => setScrolled(window.scrollY > 12);
     window.addEventListener("scroll", onScroll);
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
-
-  const navTextColor = "#ffffff";
-  const mutedTextColor = "rgba(255,255,255,0.88)";
 
   const handleLogout = () => {
     logout();
     navigate("/", { replace: true });
   };
 
-  const dashboardPath =
-    role === "ADMIN" ? "/admin/dashboard" : "/user/dashboard";
-
   return (
     <nav
       style={{
-        position: "fixed",
+        position: "sticky",
         top: 0,
-        left: 0,
-        right: 0,
         zIndex: 1000,
-        background: "transparent",
-        transform: scrolled ? "translateY(-100%)" : "translateY(0)",
-        transition: "transform 0.4s cubic-bezier(0.22, 1, 0.36, 1)",
+        background: "rgba(255,255,255,0.92)",
+        backdropFilter: "blur(12px)",
+        borderBottom: "1px solid rgba(15,23,42,0.08)",
+        boxShadow: scrolled
+          ? "0 8px 24px rgba(15,23,42,0.08)"
+          : "0 2px 8px rgba(15,23,42,0.04)",
       }}
     >
       <div
@@ -51,37 +53,33 @@ export default function Navbar() {
           maxWidth: "1200px",
           margin: "0 auto",
           padding: "0 2rem",
-          height: "82px",
+          height: "70px",
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          gap: "24px",
         }}
       >
+        {/* LOGO */}
         <div
           onClick={() => navigate("/")}
           style={{
             display: "flex",
             alignItems: "center",
-            gap: "12px",
+            gap: "10px",
             cursor: "pointer",
-            flexShrink: 0,
-            minWidth: "220px",
           }}
         >
           <div
             style={{
-              width: "54px",
-              height: "54px",
-              borderRadius: "16px",
+              width: "40px",
+              height: "40px",
+              borderRadius: "10px",
               background: "var(--primary)",
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              color: "#111827",
               fontWeight: 800,
-              fontSize: "26px",
-              boxShadow: "0 10px 24px rgba(244, 180, 0, 0.28)",
+              color: "#111827",
             }}
           >
             U
@@ -89,125 +87,151 @@ export default function Navbar() {
 
           <div
             style={{
-              fontSize: "28px",
+              fontSize: "20px",
               fontWeight: 800,
-              letterSpacing: "-0.5px",
-              color: "#fff",
-              lineHeight: 1,
-              whiteSpace: "nowrap",
+              color: "#0f172a",
             }}
           >
             Uni<span style={{ color: "var(--primary)" }}>Sphere</span>
           </div>
         </div>
 
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "10px",
-            flex: 1,
-            justifyContent: "center",
-          }}
-        >
-          {navLinks.map((link) => {
-            let targetPath = link.path;
+        {/* NAV LINKS */}
+        {!isLoginPage && (
+          <div style={{ display: "flex", gap: "28px" }}>
+            {navLinks.map((link) => {
+              let targetPath = link.path;
 
-            if (link.label === "Bookings") {
-              if (role === "ADMIN") {
-                targetPath = "/admin/bookings";
-              } else {
-                targetPath = "/bookings";
+              if (link.label === "Dashboard") {
+                targetPath =
+                  role === "ADMIN"
+                    ? "/admin/dashboard"
+                    : "/user/dashboard";
               }
-            }
 
-            const active =
-              link.label === "Bookings"
-                ? location.pathname === "/bookings" ||
-                  location.pathname === "/admin/bookings"
-                : location.pathname === targetPath ||
-                  (targetPath !== "/" &&
-                    location.pathname.startsWith(targetPath));
+              if (link.label === "Bookings") {
+                targetPath =
+                  role === "ADMIN" ? "/admin/bookings" : "/bookings";
+              }
 
-            return (
-              <button
-                key={link.path}
-                onClick={() => navigate(targetPath)}
+              const active =
+                link.label === "Dashboard"
+                  ? location.pathname === "/admin/dashboard" ||
+                    location.pathname === "/user/dashboard"
+                  : link.label === "Bookings"
+                  ? location.pathname === "/bookings" ||
+                    location.pathname === "/admin/bookings"
+                  : location.pathname === targetPath;
+
+              return (
+                <button
+                  key={link.label}
+                  onClick={() => navigate(targetPath)}
+                  style={{
+                    background: "transparent",
+                    border: "none",
+                    cursor: "pointer",
+                    fontSize: "15px",
+                    fontWeight: active ? 700 : 500,
+                    color: active ? "#0f172a" : "#64748b",
+                    position: "relative",
+                    paddingBottom: "4px",
+                  }}
+                >
+                  {link.label}
+
+                  {active && (
+                    <div
+                      style={{
+                        position: "absolute",
+                        bottom: "-6px",
+                        left: 0,
+                        right: 0,
+                        height: "2px",
+                        background: "var(--primary)",
+                      }}
+                    />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        )}
+
+        {/* RIGHT SIDE */}
+        <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+          {isLoginPage ? (
+            <button
+              onClick={() => navigate("/")}
+              style={{
+                background: "transparent",
+                border: "none",
+                fontWeight: 600,
+                cursor: "pointer",
+                color: "#64748b",
+              }}
+            >
+              ← Back to Home
+            </button>
+          ) : token ? (
+            <>
+              {/* 🔔 Notification Bell */}
+              <div
+                onClick={() => navigate("/notifications")}
                 style={{
-                  background: "transparent",
-                  color: active ? "var(--primary)" : mutedTextColor,
-                  fontSize: "15px",
-                  fontWeight: active ? 700 : 500,
-                  padding: "8px 10px",
-                  borderRadius: "10px",
-                  transition: "all 0.25s ease",
-                  border: "none",
+                  position: "relative",
                   cursor: "pointer",
-                }}
-                onMouseEnter={(e) => {
-                  if (!active) {
-                    e.currentTarget.style.color = "var(--primary)";
-                  }
-                }}
-                onMouseLeave={(e) => {
-                  if (!active) {
-                    e.currentTarget.style.color = mutedTextColor;
-                  }
+                  padding: "6px",
+                  borderRadius: "8px",
                 }}
               >
-                {link.label}
-              </button>
-            );
-          })}
-        </div>
+                <Bell size={20} color="#475569" />
 
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "12px",
-            flexShrink: 0,
-          }}
-        >
-          {token ? (
-            <>
-              <button
-                onClick={() => navigate(dashboardPath)}
+                {unreadCount > 0 && (
+                  <span
+                    style={{
+                      position: "absolute",
+                      top: "-2px",
+                      right: "-2px",
+                      minWidth: "16px",
+                      height: "16px",
+                      background: "#ef4444",
+                      color: "#fff",
+                      borderRadius: "999px",
+                      fontSize: "10px",
+                      fontWeight: 700,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      padding: "0 4px",
+                    }}
+                  >
+                    {unreadCount}
+                  </span>
+                )}
+              </div>
+
+              {/* USER NAME */}
+              <span
                 style={{
-                  background: "transparent",
-                  color: navTextColor,
                   fontSize: "14px",
                   fontWeight: 600,
-                  padding: "10px 16px",
-                  borderRadius: "999px",
-                  border: "1px solid rgba(255,255,255,0.18)",
-                  transition: "all 0.25s ease",
-                  cursor: "pointer",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = "var(--primary)";
-                  e.currentTarget.style.color = "var(--primary)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor =
-                    "rgba(255,255,255,0.18)";
-                  e.currentTarget.style.color = navTextColor;
+                  color: "#475569",
                 }}
               >
-                Welcome, {name || "User"}
-              </button>
+                {name}
+              </span>
 
+              {/* LOGOUT */}
               <button
                 onClick={handleLogout}
                 style={{
                   background: "var(--primary)",
                   color: "#111827",
-                  fontSize: "14px",
-                  fontWeight: 700,
-                  padding: "12px 22px",
-                  borderRadius: "999px",
-                  boxShadow: "0 10px 24px rgba(244, 180, 0, 0.28)",
                   border: "none",
+                  padding: "8px 14px",
+                  borderRadius: "8px",
+                  fontWeight: 700,
                   cursor: "pointer",
                 }}
               >
@@ -216,49 +240,33 @@ export default function Navbar() {
             </>
           ) : (
             <>
-              <a
-                href="http://localhost:8080/oauth2/authorization/google"
+              <button
+                onClick={() => navigate("/login")}
                 style={{
                   background: "transparent",
-                  color: navTextColor,
-                  fontSize: "14px",
+                  border: "none",
                   fontWeight: 600,
-                  padding: "10px 16px",
-                  borderRadius: "999px",
-                  border: "1px solid rgba(255,255,255,0.18)",
-                  transition: "all 0.25s ease",
-                  textDecoration: "none",
-                  display: "inline-block",
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.borderColor = "var(--primary)";
-                  e.currentTarget.style.color = "var(--primary)";
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.borderColor =
-                    "rgba(255,255,255,0.18)";
-                  e.currentTarget.style.color = navTextColor;
+                  cursor: "pointer",
+                  color: "#475569",
                 }}
               >
                 Login
-              </a>
+              </button>
 
-              <a
-                href="http://localhost:8080/oauth2/authorization/google"
+              <button
+                onClick={() => navigate("/login")}
                 style={{
                   background: "var(--primary)",
                   color: "#111827",
-                  fontSize: "14px",
+                  border: "none",
+                  padding: "8px 14px",
+                  borderRadius: "8px",
                   fontWeight: 700,
-                  padding: "12px 22px",
-                  borderRadius: "999px",
-                  boxShadow: "0 10px 24px rgba(244, 180, 0, 0.28)",
-                  textDecoration: "none",
-                  display: "inline-block",
+                  cursor: "pointer",
                 }}
               >
                 Get Started
-              </a>
+              </button>
             </>
           )}
         </div>
