@@ -976,7 +976,6 @@ export default function BookingsPage() {
   const [showAdvanced, setShowAdvanced] = useState(false);
   const [editBooking, setEditBooking] = useState(null);
   const [advancedFilters, setAdvancedFilters] = useState({
-    bookingId: "",
     resourceId: "",
     dateFrom: "",
     dateTo: "",
@@ -1052,10 +1051,6 @@ export default function BookingsPage() {
       (resource?.name || "").toLowerCase().includes(searchLower) ||
       (b.purpose || "").toLowerCase().includes(searchLower);
 
-    const matchesBookingId =
-      !advancedFilters.bookingId ||
-      (b.id || "").includes(advancedFilters.bookingId);
-
     const matchesDateFrom =
       !advancedFilters.dateFrom || b.date >= advancedFilters.dateFrom;
 
@@ -1067,7 +1062,6 @@ export default function BookingsPage() {
 
     return (
       matchesSearch &&
-      matchesBookingId &&
       matchesDateFrom &&
       matchesDateTo &&
       matchesResource
@@ -1324,7 +1318,7 @@ export default function BookingsPage() {
                 <label style={labelStyle}>Search</label>
                 <input
                   type="text"
-                  placeholder="Search by booking ID, purpose..."
+                  placeholder="Search by resource name, purpose..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   style={inputStyle}
@@ -1352,7 +1346,6 @@ export default function BookingsPage() {
               </button>
 
               {(searchQuery ||
-                advancedFilters.bookingId ||
                 advancedFilters.dateFrom ||
                 advancedFilters.dateTo ||
                 advancedFilters.resourceId) && (
@@ -1360,7 +1353,6 @@ export default function BookingsPage() {
                   onClick={() => {
                     setSearchQuery("");
                     setAdvancedFilters({
-                      bookingId: "",
                       resourceId: "",
                       dateFrom: "",
                       dateTo: "",
@@ -1393,22 +1385,6 @@ export default function BookingsPage() {
                   borderTop: "1px solid rgba(15,23,42,0.08)",
                 }}
               >
-                <div>
-                  <label style={labelStyle}>Booking ID</label>
-                  <input
-                    type="text"
-                    placeholder="e.g., B12345..."
-                    value={advancedFilters.bookingId}
-                    onChange={(e) =>
-                      setAdvancedFilters({
-                        ...advancedFilters,
-                        bookingId: e.target.value,
-                      })
-                    }
-                    style={inputStyle}
-                  />
-                </div>
-
                 <div>
                   <label style={labelStyle}>Resource</label>
                   <select
