@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { createTicket, uploadAttachments } from "../../api/ticketApi";
+import { getAllResources } from "../../api/resourceApi";
 
 export default function CreateTicketPage() {
   const navigate = useNavigate();
@@ -8,7 +9,14 @@ export default function CreateTicketPage() {
   const [error, setError] = useState(null);
   const [files, setFiles] = useState([]);
 
+  // Resources state
+  const [resources, setResources] = useState([]);
+  const [selectedLocation, setSelectedLocation] = useState("");
+  const [selectedType, setSelectedType] = useState("");
+  const [selectedResource, setSelectedResource] = useState(null);
+
   const [form, setForm] = useState({
+    resourceId: "",
     resourceName: "",
     category: "EQUIPMENT",
     description: "",
@@ -18,6 +26,58 @@ export default function CreateTicketPage() {
 
   const categories = ["EQUIPMENT", "ELECTRICAL", "CLEANING", "PLUMBING", "OTHER"];
   const priorities = ["LOW", "MEDIUM", "HIGH"];
+
+  // Fetch all resources on load
+  useEffect(() => {
+    const fetchResources = async () => {
+      try {
+        const response = await getAllResources();
+        setResources(response.data);
+      } catch (err) {
+        console.error("Failed to fetch resources", err);
+      }
+    };
+    fetchResources();
+  }, []);
+
+  // Get unique locations from resources
+  const locations = [...new Set(resources.map((r) => r.location).filter(Boolean))];
+
+  // Get types for selected location
+  const types = [...new Set(
+    resources
+      .filter((r) => r.location === selectedLocation)
+      .map((r) => r.type)
+      .filter(Boolean)
+  )];
+
+  // Get resources for selected location and type
+  const filteredResources = resources.filter(
+    (r) => r.location === selectedLocation && r.type === selectedType
+  );
+
+  const handleLocationChange = (e) => {
+    setSelectedLocation(e.target.value);
+    setSelectedType("");
+    setSelectedResource(null);
+    setForm({ ...form, resourceId: "", resourceName: "" });
+  };
+
+  const handleTypeChange = (e) => {
+    setSelectedType(e.target.value);
+    setSelectedResource(null);
+    setForm({ ...form, resourceId: "", resourceName: "" });
+  };
+
+  const handleResourceChange = (e) => {
+    const resource = filteredResources.find((r) => r.id === e.target.value);
+    setSelectedResource(resource);
+    setForm({
+      ...form,
+      resourceId: resource ? resource.id : "",
+      resourceName: resource ? resource.name : "",
+    });
+  };
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -39,22 +99,51 @@ export default function CreateTicketPage() {
     setError(null);
 
     try {
-      // Step 1: Create the ticket
       const response = await createTicket(form);
       const ticketId = response.data.id;
 
-      // Step 2: Upload attachments if any
       if (files.length > 0) {
         await uploadAttachments(ticketId, files);
       }
 
-      // Step 3: Redirect to ticket list
       navigate("/incidents");
     } catch (err) {
       setError(err.response?.data?.message || "Failed to create ticket");
     } finally {
       setLoading(false);
     }
+  };
+
+  const selectStyle = {
+    width: "100%",
+    padding: "12px 16px",
+    background: "#1a2540",
+    border: "1px solid rgba(255,255,255,0.12)",
+    borderRadius: "10px",
+    color: "#fff",
+    fontSize: "14px",
+    outline: "none",
+    boxSizing: "border-box",
+  };
+
+  const labelStyle = {
+    color: "#e2e8f0",
+    fontSize: "14px",
+    fontWeight: 600,
+    display: "block",
+    marginBottom: "8px",
+  };
+
+  const inputStyle = {
+    width: "100%",
+    padding: "12px 16px",
+    background: "rgba(255,255,255,0.06)",
+    border: "1px solid rgba(255,255,255,0.12)",
+    borderRadius: "10px",
+    color: "#fff",
+    fontSize: "14px",
+    outline: "none",
+    boxSizing: "border-box",
   };
 
   return (
@@ -64,10 +153,8 @@ export default function CreateTicketPage() {
       padding: "120px 2rem 60px",
       fontFamily: "var(--font-display)",
     }}>
-      <div style={{
-        maxWidth: "700px",
-        margin: "0 auto",
-      }}>
+      <div style={{ maxWidth: "700px", margin: "0 auto" }}>
+
         {/* Header */}
         <div style={{ marginBottom: "40px" }}>
           <button
@@ -114,51 +201,99 @@ export default function CreateTicketPage() {
           )}
 
           <form onSubmit={handleSubmit}>
-            {/* Resource/Location */}
-            <div style={{ marginBottom: "24px" }}>
-              <label style={{ color: "#e2e8f0", fontSize: "14px", fontWeight: 600, display: "block", marginBottom: "8px" }}>
-                Resource / Location
-              </label>
-              <input
-                type="text"
-                name="resourceName"
-                value={form.resourceName}
-                onChange={handleChange}
-                placeholder="e.g. Lab 3, Projector in Room 201"
-                style={{
-                  width: "100%",
+
+            {/* Resource Selection - Cascading Dropdowns */}
+            <div style={{
+              background: "rgba(244,180,0,0.04)",
+              border: "1px solid rgba(244,180,0,0.15)",
+              borderRadius: "14px",
+              padding: "20px",
+              marginBottom: "24px",
+            }}>
+              <p style={{ color: "var(--primary)", fontSize: "13px", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.8px", margin: "0 0 16px" }}>
+                Select Resource / Location
+              </p>
+
+              {/* Step 1 - Location */}
+              <div style={{ marginBottom: "16px" }}>
+                <label style={labelStyle}>Step 1 — Location</label>
+                <select
+                  value={selectedLocation}
+                  onChange={handleLocationChange}
+                  style={selectStyle}
+                >
+                  <option value="">Select a location...</option>
+                  {locations.map((loc) => (
+                    <option key={loc} value={loc}>{loc}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Step 2 - Type */}
+              {selectedLocation && (
+                <div style={{ marginBottom: "16px" }}>
+                  <label style={labelStyle}>Step 2 — Type</label>
+                  <select
+                    value={selectedType}
+                    onChange={handleTypeChange}
+                    style={selectStyle}
+                  >
+                    <option value="">Select a type...</option>
+                    {types.map((type) => (
+                      <option key={type} value={type}>
+                        {type.replace(/_/g, " ")}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {/* Step 3 - Specific Resource */}
+              {selectedType && (
+                <div>
+                  <label style={labelStyle}>Step 3 — Specific Resource</label>
+                  <select
+                    value={selectedResource?.id || ""}
+                    onChange={handleResourceChange}
+                    style={selectStyle}
+                  >
+                    <option value="">Select a resource...</option>
+                    {filteredResources.map((r) => (
+                      <option key={r.id} value={r.id}>
+                        {r.name} {r.status === "OUT_OF_SERVICE" ? "(Out of Service)" : ""}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {/* Selected Resource Summary */}
+              {selectedResource && (
+                <div style={{
+                  marginTop: "16px",
                   padding: "12px 16px",
-                  background: "rgba(255,255,255,0.06)",
-                  border: "1px solid rgba(255,255,255,0.12)",
+                  background: "rgba(16,185,129,0.08)",
+                  border: "1px solid rgba(16,185,129,0.2)",
                   borderRadius: "10px",
-                  color: "#fff",
-                  fontSize: "14px",
-                  outline: "none",
-                  boxSizing: "border-box",
-                }}
-              />
+                }}>
+                  <p style={{ color: "#10b981", fontSize: "13px", fontWeight: 600, margin: "0 0 4px" }}>
+                    ✓ Selected Resource
+                  </p>
+                  <p style={{ color: "#e2e8f0", fontSize: "14px", margin: 0 }}>
+                    {selectedResource.name} — {selectedResource.location} — {selectedResource.type?.replace(/_/g, " ")}
+                  </p>
+                </div>
+              )}
             </div>
 
             {/* Category */}
             <div style={{ marginBottom: "24px" }}>
-              <label style={{ color: "#e2e8f0", fontSize: "14px", fontWeight: 600, display: "block", marginBottom: "8px" }}>
-                Category *
-              </label>
+              <label style={labelStyle}>Category *</label>
               <select
                 name="category"
                 value={form.category}
                 onChange={handleChange}
-                style={{
-                  width: "100%",
-                  padding: "12px 16px",
-                  background: "#1a2540",
-                  border: "1px solid rgba(255,255,255,0.12)",
-                  borderRadius: "10px",
-                  color: "#fff",
-                  fontSize: "14px",
-                  outline: "none",
-                  boxSizing: "border-box",
-                }}
+                style={selectStyle}
               >
                 {categories.map((cat) => (
                   <option key={cat} value={cat}>{cat}</option>
@@ -168,9 +303,7 @@ export default function CreateTicketPage() {
 
             {/* Description */}
             <div style={{ marginBottom: "24px" }}>
-              <label style={{ color: "#e2e8f0", fontSize: "14px", fontWeight: 600, display: "block", marginBottom: "8px" }}>
-                Description *
-              </label>
+              <label style={labelStyle}>Description *</label>
               <textarea
                 name="description"
                 value={form.description}
@@ -179,25 +312,15 @@ export default function CreateTicketPage() {
                 rows={5}
                 required
                 style={{
-                  width: "100%",
-                  padding: "12px 16px",
-                  background: "rgba(255,255,255,0.06)",
-                  border: "1px solid rgba(255,255,255,0.12)",
-                  borderRadius: "10px",
-                  color: "#fff",
-                  fontSize: "14px",
-                  outline: "none",
+                  ...inputStyle,
                   resize: "vertical",
-                  boxSizing: "border-box",
                 }}
               />
             </div>
 
             {/* Priority */}
             <div style={{ marginBottom: "24px" }}>
-              <label style={{ color: "#e2e8f0", fontSize: "14px", fontWeight: 600, display: "block", marginBottom: "8px" }}>
-                Priority *
-              </label>
+              <label style={labelStyle}>Priority *</label>
               <div style={{ display: "flex", gap: "12px" }}>
                 {priorities.map((p) => (
                   <button
@@ -236,9 +359,7 @@ export default function CreateTicketPage() {
 
             {/* Contact Details */}
             <div style={{ marginBottom: "24px" }}>
-              <label style={{ color: "#e2e8f0", fontSize: "14px", fontWeight: 600, display: "block", marginBottom: "8px" }}>
-                Contact Details *
-              </label>
+              <label style={labelStyle}>Contact Details *</label>
               <input
                 type="text"
                 name="contactDetails"
@@ -246,39 +367,21 @@ export default function CreateTicketPage() {
                 onChange={handleChange}
                 placeholder="e.g. Phone: 077XXXXXXX or email@example.com"
                 required
-                style={{
-                  width: "100%",
-                  padding: "12px 16px",
-                  background: "rgba(255,255,255,0.06)",
-                  border: "1px solid rgba(255,255,255,0.12)",
-                  borderRadius: "10px",
-                  color: "#fff",
-                  fontSize: "14px",
-                  outline: "none",
-                  boxSizing: "border-box",
-                }}
+                style={inputStyle}
               />
             </div>
 
             {/* Image Attachments */}
             <div style={{ marginBottom: "32px" }}>
-              <label style={{ color: "#e2e8f0", fontSize: "14px", fontWeight: 600, display: "block", marginBottom: "8px" }}>
-                Attachments (max 3 images)
-              </label>
+              <label style={labelStyle}>Attachments (max 3 images)</label>
               <input
                 type="file"
                 accept="image/*"
                 multiple
                 onChange={handleFileChange}
                 style={{
-                  width: "100%",
-                  padding: "12px 16px",
-                  background: "rgba(255,255,255,0.06)",
-                  border: "1px solid rgba(255,255,255,0.12)",
-                  borderRadius: "10px",
+                  ...inputStyle,
                   color: "#94a3b8",
-                  fontSize: "14px",
-                  boxSizing: "border-box",
                 }}
               />
               {files.length > 0 && (
