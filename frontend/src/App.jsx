@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, useLocation } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Footer from "./components/Footer";
 import Home from "./pages/Home";
@@ -7,28 +7,25 @@ import ResourceForm from "./pages/facilities/ResourceForm";
 import ResourceDetail from "./pages/facilities/ResourceDetail";
 import Notifications from "./pages/notifications/Notifications";
 import AuthCallback from "./pages/auth/AuthCallback";
+import LoginPage from "./pages/auth/LoginPage";
 import AdminDashboard from "./pages/admin/AdminDashboard";
 import UserDashboard from "./pages/user/UserDashboard";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import BookingsPage from "./pages/Bookings/BookingsPage";
-import BookingRequests from "./pages/admin/BookingRequests"
+import BookingRequests from "./pages/admin/BookingRequests";
 import TicketListPage from "./pages/incidents/TicketListPage";
 import TicketDetailPage from "./pages/incidents/TicketDetailPage";
 import CreateTicketPage from "./pages/incidents/CreateTicketPage";
-import LoginPage from "./pages/auth/LoginPage";
 
 function AppLayout() {
   return (
     <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
-      
-      {/* Always show Navbar */}
       <Navbar />
 
       <main style={{ flex: 1 }}>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
-
           <Route path="/login" element={<LoginPage />} />
 
           <Route
@@ -127,7 +124,6 @@ function AppLayout() {
         </Routes>
       </main>
 
-      {/* Always show Footer */}
       <Footer />
     </div>
   );
