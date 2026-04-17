@@ -11,7 +11,10 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import UserDashboard from "./pages/user/UserDashboard";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import BookingsPage from "./pages/Bookings/BookingsPage";
-import BookingRequests from "./pages/admin/BookingRequests";
+import BookingRequests from "./pages/admin/BookingRequests"
+import TicketListPage from "./pages/incidents/TicketListPage";
+import TicketDetailPage from "./pages/incidents/TicketDetailPage";
+import CreateTicketPage from "./pages/incidents/CreateTicketPage";
 
 function AppLayout() {
   const location = useLocation();
@@ -88,23 +91,32 @@ function AppLayout() {
             </ProtectedRoute>
           }
         />
-          <Route
-            path="/incidents"
-            element={
-              <ProtectedRoute>
-                <div
-                  style={{
-                    padding: "120px 2rem",
-                    textAlign: "center",
-                    fontFamily: "var(--font-display)",
-                    fontSize: "24px",
-                  }}
-                >
-                  Incidents — Coming Soon
-                </div>
-              </ProtectedRoute>
-            }
-          />
+        <Route
+          path="/incidents"
+          element={
+            <ProtectedRoute>
+              <TicketListPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/incidents/create"
+          element={
+            <ProtectedRoute>
+              <CreateTicketPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/incidents/:id"
+          element={
+            <ProtectedRoute>
+              <TicketDetailPage />
+            </ProtectedRoute>
+          }
+        />
 
           <Route
             path="/notifications"
