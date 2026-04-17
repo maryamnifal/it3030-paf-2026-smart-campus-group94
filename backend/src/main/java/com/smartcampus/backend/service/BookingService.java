@@ -8,9 +8,13 @@ import com.smartcampus.backend.exception.ConflictException;
 import com.smartcampus.backend.exception.ResourceNotFoundException;
 import com.smartcampus.backend.model.Booking;
 import com.smartcampus.backend.model.BookingStatus;
+import com.smartcampus.backend.model.Resource;
 import com.smartcampus.backend.repository.BookingRepository;
+import com.smartcampus.backend.repository.ResourceRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -18,14 +22,29 @@ import java.util.stream.Collectors;
 public class BookingService {
 
     private final BookingRepository bookingRepository;
+    private final ResourceRepository resourceRepository;
 
-    public BookingService(BookingRepository bookingRepository) {
+    public BookingService(BookingRepository bookingRepository, ResourceRepository resourceRepository) {
         this.bookingRepository = bookingRepository;
+        this.resourceRepository = resourceRepository;
     }
 
     // Create a new booking
     public BookingResponseDTO createBooking(BookingRequestDTO request) {
-        // Check for conflicts first
+        // 1. Fetch and validate resource
+        Resource resource = resourceRepository.findById(request.getResourceId())
+                .orElseThrow(() -> new ResourceNotFoundException("Resource not found with id: " + request.getResourceId()));
+
+        // 2. Validate resource status (must be ACTIVE)
+        validateResourceStatus(resource);
+
+        // 3. Validate attendees don't exceed capacity
+        validateCapacity(resource, request.getExpectedAttendees());
+
+        // 4. Validate booking time is within resource availability windows
+        validateAvailabilityWindow(resource, request.getDate(), request.getStartTime(), request.getEndTime());
+
+        // 5. Check for time conflicts
         List<Booking> conflicts = bookingRepository.findConflictingBookings(
                 request.getResourceId(),
                 request.getDate(),
@@ -78,6 +97,19 @@ public class BookingService {
             throw new ConflictException("Cannot edit a " + booking.getStatus() + " booking.");
         }
 
+        // Fetch and validate resource
+        Resource resource = resourceRepository.findById(booking.getResourceId())
+                .orElseThrow(() -> new ResourceNotFoundException("Resource not found with id: " + booking.getResourceId()));
+
+        // Validate resource status (must be ACTIVE)
+        validateResourceStatus(resource);
+
+        // Validate attendees don't exceed capacity
+        validateCapacity(resource, request.getExpectedAttendees());
+
+        // Validate booking time is within resource availability windows
+        validateAvailabilityWindow(resource, request.getDate(), request.getStartTime(), request.getEndTime());
+
         // Check for conflicts with the new time slot (excluding current booking)
         List<Booking> conflicts = bookingRepository.findConflictingBookings(
                 booking.getResourceId(),
@@ -86,7 +118,6 @@ public class BookingService {
                 request.getEndTime()
         );
 
-        // Remove current booking from conflicts check
         conflicts = conflicts.stream()
                 .filter(b -> !b.getId().equals(id))
                 .collect(Collectors.toList());
@@ -138,6 +169,77 @@ public class BookingService {
                 .orElseThrow(() -> new ResourceNotFoundException("Booking not found with id: " + id));
 
         bookingRepository.delete(booking);
+    }
+
+    // ─── VALIDATION HELPERS ───────────────────────────────────────────────
+
+    /**
+     * Validate that resource is ACTIVE (not OUT_OF_SERVICE)
+     */
+    private void validateResourceStatus(Resource resource) {
+        if (resource.getStatus() == null || !resource.getStatus().equals("ACTIVE")) {
+            throw new ConflictException("Cannot book " + (resource.getStatus() != null ? resource.getStatus() : "UNKNOWN") + 
+                    " resource. Resource must be ACTIVE.");
+        }
+    }
+
+    /**
+     * Validate that expected attendees don't exceed resource capacity
+     */
+    private void validateCapacity(Resource resource, int expectedAttendees) {
+        if (expectedAttendees > resource.getCapacity()) {
+            throw new ConflictException("Expected attendees (" + expectedAttendees + ") exceeds resource capacity (" + 
+                    resource.getCapacity() + ").");
+        }
+    }
+
+    /**
+     * Validate that booking time falls within resource availability windows
+     * Format: "MON 08:00-18:00", "TUE 09:00-17:00", etc.
+     */
+    private void validateAvailabilityWindow(Resource resource, LocalDate bookingDate, LocalTime bookingStart, LocalTime bookingEnd) {
+        if (resource.getAvailabilityWindows() == null || resource.getAvailabilityWindows().isEmpty()) {
+            // No availability windows means always available
+            return;
+        }
+
+        // Get day of week from booking date
+        String dayOfWeek = bookingDate.getDayOfWeek().toString().substring(0, 3).toUpperCase();
+
+        // Find matching availability window for this day
+        boolean foundMatchingWindow = false;
+        for (String window : resource.getAvailabilityWindows()) {
+            // Format: "MON 08:00-18:00"
+            String[] parts = window.split(" ");
+            if (parts.length < 2) continue;
+
+            String windowDay = parts[0].toUpperCase();
+            if (!windowDay.equals(dayOfWeek)) continue;
+
+            foundMatchingWindow = true;
+
+            // Parse window times
+            String[] times = parts[1].split("-");
+            if (times.length != 2) continue;
+
+            LocalTime windowStart = LocalTime.parse(times[0]);
+            LocalTime windowEnd = LocalTime.parse(times[1]);
+
+            // Check if booking is within window
+            if (bookingStart.isBefore(windowStart) || bookingEnd.isAfter(windowEnd) || bookingStart.isAfter(bookingEnd)) {
+                throw new ConflictException("Booking time (" + bookingStart + "-" + bookingEnd + ") is outside resource availability window (" + 
+                        windowStart + "-" + windowEnd + " " + dayOfWeek + ").");
+            }
+
+            // Valid booking
+            return;
+        }
+
+        // If we reach here, no matching window was found for this day
+        if (foundMatchingWindow == false && !resource.getAvailabilityWindows().isEmpty()) {
+            throw new ConflictException("Resource is not available on " + dayOfWeek + ". Available windows: " + 
+                    String.join(", ", resource.getAvailabilityWindows()));
+        }
     }
 
     // Helper: map Booking entity to BookingResponseDTO
