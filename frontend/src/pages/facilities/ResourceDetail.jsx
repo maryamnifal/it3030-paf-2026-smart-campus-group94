@@ -69,7 +69,7 @@ export default function ResourceDetail() {
   const shellStyle = {
     minHeight: "100vh",
     background:
-      "radial-gradient(circle at top, rgba(244,180,0,0.06), transparent 18%), linear-gradient(180deg, #f8fafc 0%, #f8fafc 55%, #eef2f7 100%)",
+      "radial-gradient(circle at top, rgba(244,180,0,0.05), transparent 20%), linear-gradient(180deg, #f8fafc 0%, #f8fafc 55%, #eef2f7 100%)",
     paddingBottom: "90px",
   };
 
@@ -114,7 +114,7 @@ export default function ResourceDetail() {
 
   if (loading) {
     return (
-      <div style={{ ...shellStyle, paddingTop: "140px" }}>
+      <div style={{ ...shellStyle, paddingTop: "120px" }}>
         <div style={containerStyle}>
           <div
             style={{
@@ -135,7 +135,7 @@ export default function ResourceDetail() {
 
   if (!resource) {
     return (
-      <div style={{ ...shellStyle, paddingTop: "140px" }}>
+      <div style={{ ...shellStyle, paddingTop: "120px" }}>
         <div style={containerStyle}>
           <div
             style={{
@@ -190,115 +190,88 @@ export default function ResourceDetail() {
     <div style={shellStyle}>
       <section
         style={{
-          position: "relative",
-          overflow: "hidden",
-          background:
-            "radial-gradient(circle at top right, rgba(244,180,0,0.16), transparent 25%), linear-gradient(120deg, rgba(9,18,32,0.98) 0%, rgba(15,41,71,0.94) 48%, rgba(22,58,99,0.88) 100%)",
-          padding: "132px 0 94px",
+          ...containerStyle,
+          paddingTop: "28px",
         }}
       >
         <div
           style={{
-            position: "absolute",
-            top: "-110px",
-            right: "-50px",
-            width: "320px",
-            height: "320px",
-            borderRadius: "50%",
-            background: "rgba(244,180,0,0.10)",
-            filter: "blur(80px)",
+            ...cardStyle,
+            padding: "30px 34px",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "flex-start",
+            gap: "20px",
+            flexWrap: "wrap",
+            marginBottom: "28px",
           }}
-        />
-        <div
-          style={{
-            position: "absolute",
-            bottom: "-110px",
-            left: "-60px",
-            width: "260px",
-            height: "260px",
-            borderRadius: "50%",
-            background: "rgba(255,255,255,0.06)",
-            filter: "blur(80px)",
-          }}
-        />
-
-        <div style={{ ...containerStyle, position: "relative", zIndex: 2 }}>
-          <div
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "10px",
-              padding: "9px 18px",
-              borderRadius: "999px",
-              background: "rgba(255,255,255,0.08)",
-              border: "1px solid rgba(255,255,255,0.12)",
-              color: "rgba(255,255,255,0.92)",
-              fontSize: "12px",
-              fontWeight: 700,
-              letterSpacing: "0.7px",
-              marginBottom: "24px",
-            }}
-          >
-            <span
+        >
+          <div style={{ maxWidth: "760px" }}>
+            <div
               style={{
-                width: "8px",
-                height: "8px",
-                borderRadius: "50%",
-                background: "var(--primary)",
-                display: "inline-block",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "10px",
+                padding: "8px 16px",
+                borderRadius: "999px",
+                background: "rgba(244,180,0,0.12)",
+                color: "#0f172a",
+                fontSize: "12px",
+                fontWeight: 800,
+                letterSpacing: "0.7px",
+                marginBottom: "18px",
               }}
-            />
-            FACILITY RESOURCE DETAILS
+            >
+              <span
+                style={{
+                  width: "8px",
+                  height: "8px",
+                  borderRadius: "50%",
+                  background: "var(--primary)",
+                  display: "inline-block",
+                }}
+              />
+              FACILITY RESOURCE DETAILS
+            </div>
+
+            <h1
+              style={{
+                fontSize: "36px",
+                lineHeight: 1.04,
+                fontWeight: 900,
+                color: "#0f172a",
+                letterSpacing: "-1.4px",
+                marginBottom: "16px",
+              }}
+            >
+              {resource.name}
+            </h1>
+
+            <p
+              style={{
+                color: "#64748b",
+                fontSize: "16px",
+                lineHeight: 1.9,
+                maxWidth: "720px",
+                margin: 0,
+              }}
+            >
+              {resource.description ||
+                "View full facility details, availability, location, and media for this campus resource."}
+            </p>
           </div>
 
           <div
             style={{
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "flex-end",
-              gap: "24px",
-              flexWrap: "wrap",
+              ...statusStyles,
+              borderRadius: "999px",
+              padding: "12px 18px",
+              fontSize: "13px",
+              fontWeight: 900,
+              whiteSpace: "nowrap",
             }}
           >
-            <div style={{ maxWidth: "780px" }}>
-              <h1
-                style={{
-                  fontSize: "clamp(36px, 5vw, 62px)",
-                  lineHeight: 1.02,
-                  fontWeight: 900,
-                  color: "#fff",
-                  letterSpacing: "-1.7px",
-                  marginBottom: "18px",
-                }}
-              >
-                {resource.name}
-              </h1>
-
-              <p
-                style={{
-                  color: "rgba(255,255,255,0.78)",
-                  fontSize: "16px",
-                  lineHeight: 1.9,
-                  maxWidth: "720px",
-                }}
-              >
-                {resource.description ||
-                  "View full facility details, availability, location, and media for this campus resource."}
-              </p>
-            </div>
-
-            <div
-              style={{
-                ...statusStyles,
-                borderRadius: "999px",
-                padding: "12px 18px",
-                fontSize: "13px",
-                fontWeight: 900,
-                whiteSpace: "nowrap",
-              }}
-            >
-              {formattedStatus}
-            </div>
+            {formattedStatus}
           </div>
         </div>
       </section>
@@ -306,9 +279,6 @@ export default function ResourceDetail() {
       <section
         style={{
           ...containerStyle,
-          marginTop: "-42px",
-          position: "relative",
-          zIndex: 3,
         }}
       >
         <div
@@ -447,14 +417,17 @@ export default function ResourceDetail() {
             <div style={{ ...cardStyle, padding: "32px" }}>
               <div style={sectionTitleStyle}>Availability windows</div>
 
-              {resource.availabilityWindows && resource.availabilityWindows.length > 0 ? (
-                <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+              {resource.availabilityWindows &&
+              resource.availabilityWindows.length > 0 ? (
+                <div
+                  style={{ display: "flex", flexDirection: "column", gap: "12px" }}
+                >
                   {resource.availabilityWindows.map((slot, index) => (
                     <div
                       key={index}
                       style={{
-                        background: "transparent",
-                        border: "1.5px solid rgba(15, 23, 42, 0.12)",
+                        background: "rgba(248,250,252,0.9)",
+                        border: "1.5px solid rgba(15, 23, 42, 0.08)",
                         borderRadius: "18px",
                         padding: "14px 16px",
                         fontSize: "14px",
@@ -469,7 +442,7 @@ export default function ResourceDetail() {
                       }}
                       onMouseLeave={(e) => {
                         e.currentTarget.style.borderColor =
-                          "rgba(15, 23, 42, 0.12)";
+                          "rgba(15, 23, 42, 0.08)";
                         e.currentTarget.style.boxShadow = "none";
                       }}
                     >
@@ -506,7 +479,7 @@ export default function ResourceDetail() {
                   style={{
                     background: "transparent",
                     color: "#0f172a",
-                    border: "2px solid rgba(15, 23, 42, 0.15)",
+                    border: "2px solid rgba(15, 23, 42, 0.12)",
                     padding: "14px 24px",
                     borderRadius: "999px",
                     fontSize: "14px",
@@ -515,37 +488,37 @@ export default function ResourceDetail() {
                     transition: "all 0.25s ease",
                   }}
                   onMouseEnter={(e) => {
-                        e.currentTarget.style.borderColor = "var(--primary)";
-                        e.currentTarget.style.boxShadow =
-                          "0 10px 22px rgba(244, 180, 0, 0.08)";
-                      }}
-                      onMouseLeave={(e) => {
-                        e.currentTarget.style.borderColor =
-                          "rgba(15, 23, 42, 0.12)";
-                        e.currentTarget.style.boxShadow = "none";
-                      }}
+                    e.currentTarget.style.borderColor = "var(--primary)";
+                    e.currentTarget.style.boxShadow =
+                      "0 10px 22px rgba(244, 180, 0, 0.08)";
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.borderColor =
+                      "rgba(15, 23, 42, 0.12)";
+                    e.currentTarget.style.boxShadow = "none";
+                  }}
                 >
                   Back to Facilities
                 </button>
-               {/* ✅ ONLY USER sees this */}
-  {isUser && (
-    <button
-      onClick={() => navigate("/bookings")}
-      style={{
-        background: "var(--secondary)",
-        color: "#fff",
-        border: "none",
-        padding: "14px 24px",
-        borderRadius: "999px",
-        fontSize: "14px",
-        fontWeight: 900,
-        cursor: "pointer",
-        boxShadow: "0 12px 28px rgba(22, 58, 99, 0.22)",
-      }}
-    >
-      Book Now
-    </button>
-  )}
+
+                {isUser && (
+                  <button
+                    onClick={() => navigate("/bookings")}
+                    style={{
+                      background: "var(--secondary)",
+                      color: "#fff",
+                      border: "none",
+                      padding: "14px 24px",
+                      borderRadius: "999px",
+                      fontSize: "14px",
+                      fontWeight: 900,
+                      cursor: "pointer",
+                      boxShadow: "0 12px 28px rgba(22, 58, 99, 0.22)",
+                    }}
+                  >
+                    Book Now
+                  </button>
+                )}
 
                 {isAdmin && (
                   <button

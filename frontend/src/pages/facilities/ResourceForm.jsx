@@ -185,7 +185,7 @@ export default function ResourceForm() {
       style={{
         minHeight: "100vh",
         background: "var(--bg-light)",
-        padding: "120px 2rem 80px",
+        padding: "40px 2rem 80px",
       }}
     >
       <div style={{ maxWidth: "1200px", margin: "0 auto" }}>

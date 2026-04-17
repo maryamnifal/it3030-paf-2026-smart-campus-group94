@@ -9,17 +9,17 @@ import java.util.List;
 @Repository
 public interface ResourceRepository extends MongoRepository<Resource, String> {
 
-    // Find by type (e.g. LAB, LECTURE_HALL)
-    List<Resource> findByType(String type);
+    // Find by type
+    List<Resource> findByTypeIgnoreCase(String type);
 
-    // Find by location
-    List<Resource> findByLocation(String location);
+    // 🔥 FIXED: Partial + case-insensitive location search
+    List<Resource> findByLocationContainingIgnoreCase(String location);
 
     // Find by status
     List<Resource> findByStatus(String status);
 
-    // Find by type and location
-    List<Resource> findByTypeAndLocation(String type, String location);
+    // Optional: combined filter
+    List<Resource> findByTypeIgnoreCaseAndLocationContainingIgnoreCase(String type, String location);
 
     // Find by minimum capacity
     List<Resource> findByCapacityGreaterThanEqual(int capacity);
