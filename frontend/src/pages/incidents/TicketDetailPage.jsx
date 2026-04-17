@@ -144,8 +144,8 @@ export default function TicketDetailPage() {
 
   const handleEditComment = async (commentId) => {
     try {
-      const response = await editComment(id, commentId, { content: editingContent });
-      setTicket(response.data);
+      await editComment(id, commentId, { content: editingContent });
+      await fetchTicket();
       setEditingCommentId(null);
       setEditingContent("");
     } catch (err) {
@@ -156,10 +156,11 @@ export default function TicketDetailPage() {
   const handleDeleteComment = async (commentId) => {
     if (!window.confirm("Delete this comment?")) return;
     try {
-      const response = await deleteComment(id, commentId);
-      setTicket(response.data);
+        await deleteComment(id, commentId);
+        // Instead of using response.data, fetch the ticket again
+        await fetchTicket();
     } catch (err) {
-      alert(err.response?.data?.message || "Failed to delete comment");
+        alert(err.response?.data?.message || "Failed to delete comment");
     }
   };
 
