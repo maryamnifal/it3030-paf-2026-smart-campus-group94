@@ -11,25 +11,25 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import UserDashboard from "./pages/user/UserDashboard";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import BookingsPage from "./pages/Bookings/BookingsPage";
-import BookingRequests from "./pages/admin/BookingRequests";
+import BookingRequests from "./pages/admin/BookingRequests"
+import TicketListPage from "./pages/incidents/TicketListPage";
+import TicketDetailPage from "./pages/incidents/TicketDetailPage";
+import CreateTicketPage from "./pages/incidents/CreateTicketPage";
+import LoginPage from "./pages/auth/LoginPage";
 
 function AppLayout() {
-  const location = useLocation();
-
-  const hideNavbar =
-    location.pathname === "/facilities/new" ||
-    location.pathname.startsWith("/facilities/edit/");
-
-  const hideFooter = hideNavbar;
-
   return (
     <div style={{ display: "flex", flexDirection: "column", minHeight: "100vh" }}>
-      {!hideNavbar && <Navbar />}
+      
+      {/* Always show Navbar */}
+      <Navbar />
 
       <main style={{ flex: 1 }}>
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
+
+          <Route path="/login" element={<LoginPage />} />
 
           <Route
             path="/admin/dashboard"
@@ -74,34 +74,44 @@ function AppLayout() {
           <Route
             path="/bookings"
             element={
-             <ProtectedRoute allowedRole="USER">
-              <BookingsPage />
-             </ProtectedRoute>
-          }
-        />
+              <ProtectedRoute allowedRole="USER">
+                <BookingsPage />
+              </ProtectedRoute>
+            }
+          />
 
-         <Route
-           path="/admin/bookings"
-           element={
-            <ProtectedRoute allowedRole="ADMIN">
-              <BookingRequests />
-            </ProtectedRoute>
-          }
-        />
+          <Route
+            path="/admin/bookings"
+            element={
+              <ProtectedRoute allowedRole="ADMIN">
+                <BookingRequests />
+              </ProtectedRoute>
+            }
+          />
+
           <Route
             path="/incidents"
             element={
               <ProtectedRoute>
-                <div
-                  style={{
-                    padding: "120px 2rem",
-                    textAlign: "center",
-                    fontFamily: "var(--font-display)",
-                    fontSize: "24px",
-                  }}
-                >
-                  Incidents — Coming Soon
-                </div>
+                <TicketListPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/incidents/create"
+            element={
+              <ProtectedRoute>
+                <CreateTicketPage />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/incidents/:id"
+            element={
+              <ProtectedRoute>
+                <TicketDetailPage />
               </ProtectedRoute>
             }
           />
@@ -117,7 +127,8 @@ function AppLayout() {
         </Routes>
       </main>
 
-      {!hideFooter && <Footer />}
+      {/* Always show Footer */}
+      <Footer />
     </div>
   );
 }
