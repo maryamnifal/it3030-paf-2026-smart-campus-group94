@@ -26,24 +26,48 @@ export default function ResourceList() {
       const activeFilters = Object.fromEntries(
         Object.entries(customFilters).filter(([_, v]) => v !== "")
       );
+
+      if (activeFilters.location) {
+        activeFilters.location = activeFilters.location.trim();
+      }
+
+      if (
+        activeFilters.capacity !== undefined &&
+        activeFilters.capacity !== ""
+      ) {
+        activeFilters.capacity = Math.max(0, Number(activeFilters.capacity));
+      }
+
       const res = await getAllResources(activeFilters);
-      setResources(res.data);
+
+      const sortedResources = [...(res.data || [])].sort((a, b) =>
+        (a.name || "").localeCompare(b.name || "", undefined, {
+          sensitivity: "base",
+        })
+      );
+
+      setResources(sortedResources);
     } catch (err) {
       console.error("Error fetching resources:", err);
+      setResources([]);
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    fetchResources();
-  }, []);
+    const timeout = setTimeout(() => {
+      fetchResources(filters);
+    }, 300);
+
+    return () => clearTimeout(timeout);
+  }, [filters]);
 
   const handleDelete = async (id) => {
     if (window.confirm("Are you sure you want to delete this resource?")) {
       try {
         await deleteResource(id);
-        fetchResources();
+        fetchResources(filters);
       } catch (err) {
         console.error("Error deleting resource:", err);
       }
@@ -54,20 +78,14 @@ export default function ResourceList() {
     const newStatus = currentStatus === "ACTIVE" ? "OUT_OF_SERVICE" : "ACTIVE";
     try {
       await updateResourceStatus(id, newStatus);
-      fetchResources();
+      fetchResources(filters);
     } catch (err) {
       console.error("Error updating status:", err);
     }
   };
 
-  const handleSearch = () => {
-    fetchResources(filters);
-  };
-
   const handleClear = () => {
-    const cleared = { type: "", location: "", capacity: "" };
-    setFilters(cleared);
-    fetchResources(cleared);
+    setFilters({ type: "", location: "", capacity: "" });
   };
 
   const pageCardStyle = {
@@ -86,6 +104,7 @@ export default function ResourceList() {
     color: "var(--text-dark)",
     fontSize: "14px",
     outline: "none",
+    boxSizing: "border-box",
   };
 
   const sectionPillStyle = {
@@ -111,98 +130,69 @@ export default function ResourceList() {
     >
       <section
         style={{
-          position: "relative",
-          overflow: "hidden",
-          background:
-            "linear-gradient(90deg, rgba(9,18,32,0.96) 0%, rgba(15,41,71,0.88) 45%, rgba(22,58,99,0.78) 100%)",
-          padding: "130px 2rem 70px",
+          maxWidth: "1200px",
+          margin: "0 auto",
+          padding: "32px 2rem 0",
         }}
       >
         <div
           style={{
-            position: "absolute",
-            top: "-120px",
-            right: "-100px",
-            width: "360px",
-            height: "360px",
-            borderRadius: "50%",
-            background: "rgba(244,180,0,0.12)",
-            filter: "blur(70px)",
-          }}
-        />
-        <div
-          style={{
-            position: "absolute",
-            bottom: "-100px",
-            left: "-80px",
-            width: "300px",
-            height: "300px",
-            borderRadius: "50%",
-            background: "rgba(255,255,255,0.06)",
-            filter: "blur(70px)",
-          }}
-        />
-
-        <div
-          style={{
-            position: "relative",
-            zIndex: 2,
-            maxWidth: "1200px",
-            margin: "0 auto",
+            ...pageCardStyle,
+            padding: "28px 30px",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "flex-start",
+            gap: "20px",
+            flexWrap: "wrap",
           }}
         >
-          <div
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: "10px",
-              padding: "8px 18px",
-              borderRadius: "999px",
-              background: "rgba(255,255,255,0.08)",
-              border: "1px solid rgba(255,255,255,0.12)",
-              color: "rgba(255,255,255,0.88)",
-              fontSize: "12px",
-              fontWeight: 600,
-              letterSpacing: "0.5px",
-              marginBottom: "24px",
-            }}
-          >
-            <span
+          <div>
+            <div style={sectionPillStyle}>Facilities & Assets Catalogue</div>
+
+            <div
               style={{
-                width: "8px",
-                height: "8px",
-                borderRadius: "50%",
-                background: "var(--primary)",
-                display: "inline-block",
+                fontSize: "30px",
+                fontWeight: 800,
+                color: "var(--text-dark)",
+                letterSpacing: "-0.8px",
+                marginBottom: "10px",
               }}
-            />
-            FACILITIES & ASSETS CATALOGUE
+            >
+              Resource Catalogue
+            </div>
+
+            <div
+              style={{
+                fontSize: "15px",
+                color: "var(--text-light)",
+                lineHeight: 1.7,
+                maxWidth: "680px",
+              }}
+            >
+              Browse labs, halls, meeting rooms, and equipment. Use the filters
+              below to quickly find the right resource.
+            </div>
           </div>
 
-          <h1
-            style={{
-              fontSize: "clamp(34px, 5vw, 58px)",
-              lineHeight: 1.05,
-              fontWeight: 800,
-              color: "#fff",
-              letterSpacing: "-1.5px",
-              marginBottom: "14px",
-              maxWidth: "760px",
-            }}
-          >
-            Explore, manage, and organize your campus resources.
-          </h1>
-
-          <p
-            style={{
-              color: "rgba(255,255,255,0.72)",
-              fontSize: "16px",
-              lineHeight: 1.8,
-              maxWidth: "700px",
-            }}
-          >
-            Access labs, halls, meeting rooms, and equipment from one clean catalogue designed for UniSphere.
-          </p>
+          {isAdmin && (
+            <button
+              onClick={() => navigate("/facilities/new")}
+              style={{
+                background: "var(--secondary)",
+                color: "#fff",
+                border: "none",
+                padding: "14px 22px",
+                borderRadius: "999px",
+                fontSize: "14px",
+                fontWeight: 700,
+                cursor: "pointer",
+                boxShadow: "0 10px 24px rgba(22, 58, 99, 0.18)",
+                whiteSpace: "nowrap",
+              }}
+            >
+              + Add New Resource
+            </button>
+          )}
         </div>
       </section>
 
@@ -210,7 +200,7 @@ export default function ResourceList() {
         style={{
           maxWidth: "1200px",
           margin: "0 auto",
-          padding: "40px 2rem 0",
+          padding: "24px 2rem 0",
         }}
       >
         <div style={{ ...pageCardStyle, padding: "28px", marginBottom: "24px" }}>
@@ -230,7 +220,7 @@ export default function ResourceList() {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "1fr 1fr 1fr auto auto",
+              gridTemplateColumns: "1fr 1fr 1fr auto",
               gap: "14px",
               alignItems: "end",
             }}
@@ -250,7 +240,7 @@ export default function ResourceList() {
               <select
                 value={filters.type}
                 onChange={(e) =>
-                  setFilters({ ...filters, type: e.target.value })
+                  setFilters((prev) => ({ ...prev, type: e.target.value }))
                 }
                 style={inputStyle}
               >
@@ -279,7 +269,10 @@ export default function ResourceList() {
                 placeholder="Filter by location"
                 value={filters.location}
                 onChange={(e) =>
-                  setFilters({ ...filters, location: e.target.value })
+                  setFilters((prev) => ({
+                    ...prev,
+                    location: e.target.value,
+                  }))
                 }
                 style={inputStyle}
               />
@@ -299,41 +292,22 @@ export default function ResourceList() {
               </label>
               <input
                 type="number"
+                min="0"
                 placeholder="Enter capacity"
                 value={filters.capacity}
-                onChange={(e) =>
-                  setFilters({ ...filters, capacity: e.target.value })
-                }
+                onChange={(e) => {
+                  const value = e.target.value;
+
+                  if (value === "" || Number(value) >= 0) {
+                    setFilters((prev) => ({
+                      ...prev,
+                      capacity: value,
+                    }));
+                  }
+                }}
                 style={inputStyle}
               />
             </div>
-
-            <button
-              onClick={handleSearch}
-              style={{
-                background: "var(--primary)",
-                color: "#111827",
-                border: "none",
-                padding: "14px 22px",
-                borderRadius: "999px",
-                fontSize: "14px",
-                fontWeight: 700,
-                cursor: "pointer",
-                boxShadow: "0 10px 24px rgba(244, 180, 0, 0.22)",
-                transition: "all 0.25s ease",
-                height: "50px",
-              }}
-              onMouseEnter={(e) => {
-                e.target.style.transform = "translateY(-1px)";
-                e.target.style.background = "var(--primary-dark)";
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.transform = "translateY(0)";
-                e.target.style.background = "var(--primary)";
-              }}
-            >
-              Search
-            </button>
 
             <button
               onClick={handleClear}
@@ -388,25 +362,6 @@ export default function ResourceList() {
                 : `${resources.length} resource${resources.length !== 1 ? "s" : ""} found`}
             </div>
           </div>
-
-          {isAdmin && (
-            <button
-              onClick={() => navigate("/facilities/new")}
-              style={{
-                background: "var(--secondary)",
-                color: "#fff",
-                border: "none",
-                padding: "14px 22px",
-                borderRadius: "999px",
-                fontSize: "14px",
-                fontWeight: 700,
-                cursor: "pointer",
-                boxShadow: "0 10px 24px rgba(22, 58, 99, 0.18)",
-              }}
-            >
-              + Add New Resource
-            </button>
-          )}
         </div>
 
         {loading ? (

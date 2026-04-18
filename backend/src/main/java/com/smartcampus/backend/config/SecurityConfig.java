@@ -56,7 +56,6 @@ public class SecurityConfig {
 
                 // Module C - Ticket rules (admin only)
                 .requestMatchers(HttpMethod.GET, "/api/tickets").hasRole("ADMIN")
-                .requestMatchers(HttpMethod.DELETE, "/api/tickets/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.PATCH, "/api/tickets/*/assign").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.PATCH, "/api/tickets/*/status").hasRole("ADMIN")
 
@@ -67,6 +66,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/tickets/*/comments").authenticated()
                 .requestMatchers(HttpMethod.PUT, "/api/tickets/*/comments/**").authenticated()
                 .requestMatchers(HttpMethod.DELETE, "/api/tickets/*/comments/**").authenticated()
+                .requestMatchers(HttpMethod.DELETE, "/api/tickets/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.POST, "/api/tickets/*/attachments").authenticated()
                 .anyRequest().authenticated()
             )
