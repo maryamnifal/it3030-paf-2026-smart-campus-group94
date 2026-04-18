@@ -7,6 +7,14 @@ import {
 } from "../../api/bookingApi";
 import { getAllResources } from "../../api/resourceApi";
 
+// ─── Shared Styles ────────────────────────────────────────────────────────────
+const card = {
+  background: "#fff",
+  border: "1px solid rgba(15,23,42,0.08)",
+  borderRadius: "20px",
+  boxShadow: "0 4px 20px rgba(15,23,42,0.05)",
+};
+
 const STATUS_CONFIG = {
   PENDING:   { label: "Pending",   bg: "#fef9c3", color: "#854d0e" },
   APPROVED:  { label: "Approved",  bg: "#dcfce7", color: "#166534" },
@@ -14,79 +22,46 @@ const STATUS_CONFIG = {
   CANCELLED: { label: "Cancelled", bg: "#f1f5f9", color: "#475569" },
 };
 
-const pageCardStyle = {
-  background: "rgba(255,255,255,0.88)",
-  backdropFilter: "blur(12px)",
-  WebkitBackdropFilter: "blur(12px)",
-  border: "1px solid rgba(15,23,42,0.07)",
-  borderRadius: "28px",
-  boxShadow: "0 20px 45px rgba(15,23,42,0.07)",
-};
-
-const pillStyle = {
-  display: "inline-block",
-  background: "var(--primary-light)",
-  color: "var(--secondary)",
-  fontSize: "12px",
-  fontWeight: 700,
-  letterSpacing: "1.2px",
-  textTransform: "uppercase",
-  padding: "8px 18px",
-  borderRadius: "999px",
-  marginBottom: "16px",
-};
-
-const inputStyle = {
-  width: "100%",
-  padding: "14px 16px",
-  borderRadius: "16px",
-  border: "1px solid rgba(15,23,42,0.08)",
-  background: "#fff",
-  color: "var(--text-dark)",
-  fontSize: "14px",
-  outline: "none",
-  boxSizing: "border-box",
-};
-
-function StatusBadge({ status }) {
+function StatusBadge({ status, size = "sm" }) {
   const cfg = STATUS_CONFIG[status] || STATUS_CONFIG.PENDING;
   return (
-    <span style={{ background: cfg.bg, color: cfg.color, borderRadius: "999px", padding: "6px 14px", fontSize: "11px", fontWeight: 700, letterSpacing: "0.5px", whiteSpace: "nowrap" }}>
+    <span style={{
+      background: cfg.bg, color: cfg.color,
+      borderRadius: "999px",
+      padding: size === "lg" ? "8px 18px" : "5px 12px",
+      fontSize: size === "lg" ? "13px" : "11px",
+      fontWeight: 700, whiteSpace: "nowrap",
+    }}>
       {cfg.label}
     </span>
   );
 }
 
-// ─── Reject Modal with reason input ──────────────────────────────────────────
-function RejectModal({ booking, onConfirm, onClose }) {
+// ─── Reject Modal ─────────────────────────────────────────────────────────────
+function RejectModal({ onConfirm, onClose }) {
   const [reason, setReason] = useState("");
   return (
-    <div style={{ position: "fixed", inset: 0, zIndex: 9999, background: "rgba(9,18,32,0.7)", display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
-      <div style={{ background: "#fff", borderRadius: "28px", boxShadow: "0 20px 60px rgba(15,23,42,0.15)", padding: "32px", width: "480px", maxWidth: "100%" }}>
-        <div style={pillStyle}>Admin Action</div>
-        <div style={{ fontSize: "22px", fontWeight: 800, color: "var(--text-dark)", marginBottom: "6px", letterSpacing: "-0.4px" }}>
-          Reject Booking
-        </div>
-        <p style={{ color: "var(--text-light)", fontSize: "14px", lineHeight: 1.7, marginBottom: "20px" }}>
-          Provide a reason for rejecting this booking. This will be shown to the user.
+    <div style={{ position: "fixed", inset: 0, zIndex: 9999, background: "rgba(9,18,32,0.6)", display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
+      <div style={{ ...card, padding: "32px", width: "460px", maxWidth: "100%" }}>
+        <div style={{ fontSize: "18px", fontWeight: 800, color: "#0f172a", marginBottom: "6px" }}>Reject Booking</div>
+        <p style={{ color: "#64748b", fontSize: "14px", lineHeight: 1.7, marginBottom: "18px" }}>
+          Provide a reason — this will be shown to the user.
         </p>
         <textarea
           value={reason}
           onChange={e => setReason(e.target.value)}
-          placeholder="e.g. Room is under maintenance, Conflicting scheduled event..."
+          placeholder="e.g. Room under maintenance, Conflicting scheduled event..."
           rows={4}
-          style={{ ...inputStyle, resize: "vertical", minHeight: "110px" }}
+          style={{ width: "100%", padding: "12px 14px", borderRadius: "12px", border: "1px solid rgba(15,23,42,0.1)", fontSize: "14px", outline: "none", resize: "vertical", minHeight: "100px", boxSizing: "border-box", fontFamily: "inherit" }}
         />
-        <div style={{ display: "flex", gap: "12px", marginTop: "20px", justifyContent: "flex-end" }}>
-          <button onClick={onClose} style={{ background: "#fff", color: "var(--text-dark)", border: "1px solid rgba(15,23,42,0.08)", padding: "12px 22px", borderRadius: "999px", fontSize: "14px", fontWeight: 600, cursor: "pointer" }}
-            onMouseEnter={e => { e.target.style.borderColor = "var(--primary)"; e.target.style.color = "var(--secondary)"; }}
-            onMouseLeave={e => { e.target.style.borderColor = "rgba(15,23,42,0.08)"; e.target.style.color = "var(--text-dark)"; }}>
+        <div style={{ display: "flex", gap: "10px", marginTop: "18px", justifyContent: "flex-end" }}>
+          <button onClick={onClose} style={{ background: "#fff", color: "#64748b", border: "1px solid rgba(15,23,42,0.1)", padding: "10px 20px", borderRadius: "999px", fontSize: "14px", cursor: "pointer", fontFamily: "inherit" }}>
             Cancel
           </button>
           <button
-            onClick={() => { if (reason.trim()) onConfirm(reason); }}
+            onClick={() => reason.trim() && onConfirm(reason)}
             disabled={!reason.trim()}
-            style={{ background: reason.trim() ? "#dc2626" : "rgba(15,23,42,0.08)", color: reason.trim() ? "#fff" : "var(--text-muted)", border: "none", padding: "12px 22px", borderRadius: "999px", fontSize: "14px", fontWeight: 700, cursor: reason.trim() ? "pointer" : "not-allowed", transition: "all 0.2s" }}>
+            style={{ background: reason.trim() ? "#dc2626" : "#f1f5f9", color: reason.trim() ? "#fff" : "#94a3b8", border: "none", padding: "10px 20px", borderRadius: "999px", fontSize: "14px", fontWeight: 700, cursor: reason.trim() ? "pointer" : "not-allowed", fontFamily: "inherit" }}>
             Confirm Rejection
           </button>
         </div>
@@ -95,103 +70,165 @@ function RejectModal({ booking, onConfirm, onClose }) {
   );
 }
 
-// ─── Single booking row ───────────────────────────────────────────────────────
-function BookingRow({ booking, resources, onApprove, onReject, onDelete }) {
-  const resource = resources.find(r => r.id === booking.resourceId);
-  const isPending = booking.status === "PENDING";
-
+// ─── Booking List Card ────────────────────────────────────────────────────────
+function BookingCard({ booking, resource, onClick }) {
   return (
-    <div style={{ ...pageCardStyle, padding: "24px 28px", transition: "all 0.25s ease" }}
-      onMouseEnter={e => { e.currentTarget.style.transform = "translateY(-3px)"; e.currentTarget.style.boxShadow = "0 24px 50px rgba(15,23,42,0.10)"; e.currentTarget.style.borderColor = "var(--primary)"; }}
-      onMouseLeave={e => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "0 20px 45px rgba(15,23,42,0.07)"; e.currentTarget.style.borderColor = "rgba(15,23,42,0.07)"; }}>
-
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "20px", flexWrap: "wrap", marginBottom: "16px" }}>
-        <div style={{ flex: 1 }}>
-          {/* Resource */}
-          <div style={{ fontSize: "12px", fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: "4px" }}>
-            {resource?.type?.replaceAll("_", " ") || "RESOURCE"}
-          </div>
-          <div style={{ fontSize: "20px", fontWeight: 800, color: "var(--text-dark)", letterSpacing: "-0.3px", marginBottom: "6px" }}>
-            {resource?.name || booking.resourceId}
-          </div>
-          {resource?.location && (
-            <div style={{ fontSize: "13px", color: "var(--text-muted)", marginBottom: "10px" }}>📍 {resource.location}</div>
-          )}
-
-          {/* Details grid */}
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))", gap: "12px" }}>
-            {[
-              { label: "Requested by", value: booking.userName || booking.userId },
-              { label: "Date",         value: booking.date },
-              { label: "Time",         value: `${booking.startTime?.slice(0,5)} – ${booking.endTime?.slice(0,5)}` },
-              { label: "Attendees",    value: booking.expectedAttendees },
-            ].map(item => (
-              <div key={item.label}>
-                <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: "3px" }}>{item.label}</div>
-                <div style={{ fontSize: "13px", fontWeight: 600, color: "var(--text-dark)" }}>{item.value}</div>
-              </div>
-            ))}
-          </div>
-
-          {booking.purpose && (
-            <div style={{ marginTop: "12px" }}>
-              <div style={{ fontSize: "11px", fontWeight: 700, color: "var(--text-muted)", textTransform: "uppercase", letterSpacing: "0.8px", marginBottom: "3px" }}>Purpose</div>
-              <div style={{ fontSize: "13px", color: "var(--text-mid)", lineHeight: 1.6 }}>{booking.purpose}</div>
-            </div>
-          )}
-
-          {booking.status === "REJECTED" && booking.rejectionReason && (
-            <div style={{ marginTop: "12px", background: "#fee2e2", border: "1px solid rgba(220,38,38,0.15)", borderRadius: "14px", padding: "10px 14px", fontSize: "13px", color: "#991b1b", lineHeight: 1.6 }}>
-              <strong>Rejection reason:</strong> {booking.rejectionReason}
-            </div>
-          )}
+    <div
+      onClick={onClick}
+      style={{ ...card, padding: "20px 24px", cursor: "pointer", transition: "all 0.2s", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "16px" }}
+      onMouseEnter={e => { e.currentTarget.style.borderColor = "var(--primary)"; e.currentTarget.style.transform = "translateY(-2px)"; e.currentTarget.style.boxShadow = "0 8px 28px rgba(15,23,42,0.09)"; }}
+      onMouseLeave={e => { e.currentTarget.style.borderColor = "rgba(15,23,42,0.08)"; e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.boxShadow = "0 4px 20px rgba(15,23,42,0.05)"; }}
+    >
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ fontSize: "11px", fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.7px", marginBottom: "3px" }}>
+          {resource?.type?.replaceAll("_", " ") || "Resource"}
         </div>
-
-        {/* Status badge */}
-        <StatusBadge status={booking.status} />
+        <div style={{ fontSize: "16px", fontWeight: 700, color: "#0f172a", marginBottom: "6px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
+          {resource?.name || booking.resourceId}
+        </div>
+        <div style={{ display: "flex", gap: "16px", flexWrap: "wrap" }}>
+          <span style={{ fontSize: "13px", color: "#64748b" }}>👤 {booking.userName || booking.userId}</span>
+          <span style={{ fontSize: "13px", color: "#64748b" }}>📅 {booking.date}</span>
+          <span style={{ fontSize: "13px", color: "#64748b" }}>🕐 {booking.startTime?.slice(0,5)} – {booking.endTime?.slice(0,5)}</span>
+        </div>
       </div>
-
-      {/* Action buttons */}
-      <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", paddingTop: "16px", borderTop: "1px solid rgba(15,23,42,0.06)" }}>
-        {isPending && (
-          <>
-            <button
-              onClick={() => onApprove(booking.id)}
-              style={{ background: "#16a34a", color: "#fff", border: "none", padding: "11px 22px", borderRadius: "999px", fontSize: "14px", fontWeight: 800, cursor: "pointer", boxShadow: "0 10px 22px rgba(22,163,74,0.20)", transition: "all 0.2s" }}
-              onMouseEnter={e => e.target.style.background = "#15803d"}
-              onMouseLeave={e => e.target.style.background = "#16a34a"}>
-              ✓ Approve
-            </button>
-            <button
-              onClick={() => onReject(booking)}
-              style={{ background: "#dc2626", color: "#fff", border: "none", padding: "11px 22px", borderRadius: "999px", fontSize: "14px", fontWeight: 800, cursor: "pointer", boxShadow: "0 10px 22px rgba(220,38,38,0.20)", transition: "all 0.2s" }}
-              onMouseEnter={e => e.target.style.background = "#b91c1c"}
-              onMouseLeave={e => e.target.style.background = "#dc2626"}>
-              ✕ Reject
-            </button>
-          </>
-        )}
-        <button
-          onClick={() => onDelete(booking.id)}
-          style={{ background: "#fff", color: "#dc2626", border: "1px solid rgba(220,38,38,0.2)", padding: "11px 22px", borderRadius: "999px", fontSize: "14px", fontWeight: 600, cursor: "pointer", transition: "all 0.2s", marginLeft: isPending ? "auto" : "0" }}
-          onMouseEnter={e => e.target.style.background = "#fee2e2"}
-          onMouseLeave={e => e.target.style.background = "#fff"}>
-          Delete
-        </button>
+      <div style={{ display: "flex", alignItems: "center", gap: "12px", flexShrink: 0 }}>
+        <StatusBadge status={booking.status} />
+        <span style={{ color: "#94a3b8", fontSize: "18px" }}>›</span>
       </div>
     </div>
   );
 }
 
-// ─── Main Admin Bookings Page ─────────────────────────────────────────────────
+// ─── Booking Detail View ──────────────────────────────────────────────────────
+function BookingDetail({ booking, resource, onBack, onApprove, onReject, onDelete }) {
+  const isPending = booking.status === "PENDING";
+
+  return (
+    <div>
+      <button
+        onClick={onBack}
+        style={{ background: "none", border: "none", color: "#64748b", fontSize: "14px", cursor: "pointer", display: "flex", alignItems: "center", gap: "6px", marginBottom: "24px", padding: 0, fontFamily: "inherit" }}
+      >
+        ← Back to all bookings
+      </button>
+
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 340px", gap: "24px", alignItems: "start" }}>
+
+        {/* Left — main info */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+          <div style={{ ...card, padding: "28px 32px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: "6px" }}>
+              <div style={{ fontSize: "12px", fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.8px" }}>
+                {resource?.type?.replaceAll("_", " ") || "Resource"}
+              </div>
+              <StatusBadge status={booking.status} size="lg" />
+            </div>
+            <div style={{ fontSize: "28px", fontWeight: 800, color: "#0f172a", letterSpacing: "-0.5px", marginBottom: "6px" }}>
+              {resource?.name || booking.resourceId}
+            </div>
+            {resource?.location && (
+              <div style={{ fontSize: "14px", color: "#64748b" }}>📍 {resource.location}</div>
+            )}
+          </div>
+
+          <div style={{ ...card, padding: "28px 32px" }}>
+            <div style={{ fontSize: "15px", fontWeight: 700, color: "#0f172a", marginBottom: "20px" }}>Booking Details</div>
+            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
+              {[
+                { label: "Requested By", value: booking.userName || booking.userId },
+                { label: "Date",         value: booking.date },
+                { label: "Start Time",   value: booking.startTime?.slice(0,5) },
+                { label: "End Time",     value: booking.endTime?.slice(0,5) },
+                { label: "Attendees",    value: booking.expectedAttendees },
+                { label: "Purpose",      value: booking.purpose || "—" },
+              ].map(item => (
+                <div key={item.label}>
+                  <div style={{ fontSize: "11px", fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.7px", marginBottom: "5px" }}>{item.label}</div>
+                  <div style={{ fontSize: "15px", fontWeight: 600, color: "#0f172a" }}>{item.value}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {booking.status === "REJECTED" && booking.rejectionReason && (
+            <div style={{ ...card, padding: "20px 24px", borderLeft: "4px solid #dc2626", borderRadius: "12px" }}>
+              <div style={{ fontSize: "12px", fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.7px", marginBottom: "6px" }}>Rejection Reason</div>
+              <div style={{ fontSize: "14px", color: "#991b1b", lineHeight: 1.7 }}>{booking.rejectionReason}</div>
+            </div>
+          )}
+        </div>
+
+        {/* Right — resource info + actions */}
+        <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
+          {resource && (
+            <div style={{ ...card, padding: "24px" }}>
+              <div style={{ fontSize: "13px", fontWeight: 700, color: "#0f172a", marginBottom: "16px" }}>Resource Information</div>
+              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px" }}>
+                {[
+                  { label: "Type",     value: resource.type?.replaceAll("_", " ") || "—" },
+                  { label: "Capacity", value: resource.capacity },
+                  { label: "Location", value: resource.location || "—" },
+                  { label: "Status",   value: resource.status || "—" },
+                ].map(item => (
+                  <div key={item.label}>
+                    <div style={{ fontSize: "11px", color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.6px", marginBottom: "3px" }}>{item.label}</div>
+                    <div style={{ fontSize: "13px", fontWeight: 600, color: "#0f172a" }}>{item.value}</div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          <div style={{ ...card, padding: "24px" }}>
+            <div style={{ fontSize: "13px", fontWeight: 700, color: "#0f172a", marginBottom: "16px" }}>Actions</div>
+            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+              {isPending && (
+                <>
+                  <button
+                    onClick={() => onApprove(booking.id)}
+                    style={{ background: "#16a34a", color: "#fff", border: "none", padding: "13px 20px", borderRadius: "12px", fontSize: "14px", fontWeight: 700, cursor: "pointer", fontFamily: "inherit", transition: "background 0.15s" }}
+                    onMouseEnter={e => e.target.style.background = "#15803d"}
+                    onMouseLeave={e => e.target.style.background = "#16a34a"}
+                  >
+                    ✓ Approve Booking
+                  </button>
+                  <button
+                    onClick={() => onReject(booking)}
+                    style={{ background: "#fee2e2", color: "#991b1b", border: "none", padding: "13px 20px", borderRadius: "12px", fontSize: "14px", fontWeight: 700, cursor: "pointer", fontFamily: "inherit", transition: "background 0.15s" }}
+                    onMouseEnter={e => e.target.style.background = "#fecaca"}
+                    onMouseLeave={e => e.target.style.background = "#fee2e2"}
+                  >
+                    ✕ Reject Booking
+                  </button>
+                </>
+              )}
+              <button
+                onClick={() => onDelete(booking.id)}
+                style={{ background: "#fff", color: "#dc2626", border: "1px solid rgba(220,38,38,0.2)", padding: "13px 20px", borderRadius: "12px", fontSize: "14px", fontWeight: 600, cursor: "pointer", fontFamily: "inherit", transition: "background 0.15s" }}
+                onMouseEnter={e => e.target.style.background = "#fee2e2"}
+                onMouseLeave={e => e.target.style.background = "#fff"}
+              >
+                Delete Booking
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ─── Main Page ────────────────────────────────────────────────────────────────
 export default function BookingRequests() {
-  const [bookings, setBookings] = useState([]);
-  const [resources, setResources] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [bookings, setBookings]         = useState([]);
+  const [resources, setResources]       = useState([]);
+  const [loading, setLoading]           = useState(true);
   const [statusFilter, setStatusFilter] = useState("ALL");
-  const [search, setSearch] = useState("");
+  const [search, setSearch]             = useState("");
+  const [selected, setSelected]         = useState(null);
   const [rejectTarget, setRejectTarget] = useState(null);
-  const [toast, setToast] = useState({ msg: "", type: "success" });
+  const [toast, setToast]               = useState({ msg: "", type: "success" });
 
   const showToast = (msg, type = "success") => {
     setToast({ msg, type });
@@ -201,14 +238,10 @@ export default function BookingRequests() {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [bookingsRes, resourcesRes] = await Promise.all([
-        getAllBookings(),
-        getAllResources(),
-      ]);
+      const [bookingsRes, resourcesRes] = await Promise.all([getAllBookings(), getAllResources()]);
       setBookings(bookingsRes.data || []);
       setResources(resourcesRes.data || []);
     } catch (err) {
-      console.error("Error fetching data:", err);
       showToast("Failed to load bookings.", "error");
     } finally {
       setLoading(false);
@@ -220,22 +253,20 @@ export default function BookingRequests() {
   const handleApprove = async (id) => {
     try {
       await approveBooking(id);
-      showToast("Booking approved successfully.");
-      fetchData();
-    } catch (err) {
-      showToast("Failed to approve booking.", "error");
-    }
+      showToast("Booking approved.");
+      await fetchData();
+      setSelected(prev => prev ? { ...prev, status: "APPROVED" } : null);
+    } catch { showToast("Failed to approve.", "error"); }
   };
 
-  const handleReject = async (reason) => {
+  const handleRejectConfirm = async (reason) => {
     try {
       await rejectBooking(rejectTarget.id, reason);
       showToast("Booking rejected.");
       setRejectTarget(null);
-      fetchData();
-    } catch (err) {
-      showToast("Failed to reject booking.", "error");
-    }
+      await fetchData();
+      setSelected(prev => prev ? { ...prev, status: "REJECTED", rejectionReason: reason } : null);
+    } catch { showToast("Failed to reject.", "error"); }
   };
 
   const handleDelete = async (id) => {
@@ -243,10 +274,9 @@ export default function BookingRequests() {
     try {
       await deleteBooking(id);
       showToast("Booking deleted.");
+      setSelected(null);
       fetchData();
-    } catch (err) {
-      showToast("Failed to delete booking.", "error");
-    }
+    } catch { showToast("Failed to delete.", "error"); }
   };
 
   const counts = {
@@ -261,19 +291,20 @@ export default function BookingRequests() {
     .filter(b => statusFilter === "ALL" || b.status === statusFilter)
     .filter(b =>
       search === "" ||
+      b.userName?.toLowerCase().includes(search.toLowerCase()) ||
       b.userId?.toLowerCase().includes(search.toLowerCase()) ||
-      b.resourceId?.toLowerCase().includes(search.toLowerCase()) ||
-      b.purpose?.toLowerCase().includes(search.toLowerCase())
+      b.purpose?.toLowerCase().includes(search.toLowerCase()) ||
+      resources.find(r => r.id === b.resourceId)?.name?.toLowerCase().includes(search.toLowerCase())
     );
 
-  const containerStyle = { maxWidth: "1200px", margin: "0 auto", padding: "0 2rem" };
+  const container = { maxWidth: "1100px", margin: "0 auto", padding: "0 2rem" };
 
   return (
-    <div style={{ minHeight: "100vh", background: "radial-gradient(circle at top, rgba(244,180,0,0.06), transparent 18%), linear-gradient(180deg, #f8fafc 0%, #f8fafc 55%, #eef2f7 100%)", paddingBottom: "80px" }}>
+    <div style={{ minHeight: "100vh", background: "linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%)", paddingBottom: "80px" }}>
 
       {/* Toast */}
       {toast.msg && (
-        <div style={{ position: "fixed", top: 24, right: 24, zIndex: 9999, background: "#fff", border: `1px solid ${toast.type === "error" ? "rgba(220,38,38,0.3)" : "rgba(15,23,42,0.08)"}`, borderRadius: "16px", padding: "14px 20px", color: toast.type === "error" ? "#991b1b" : "var(--text-dark)", fontSize: "14px", fontWeight: 500, boxShadow: "0 10px 30px rgba(15,23,42,0.1)" }}>
+        <div style={{ position: "fixed", top: 24, right: 24, zIndex: 9999, background: "#fff", border: `1px solid ${toast.type === "error" ? "rgba(220,38,38,0.3)" : "rgba(15,23,42,0.1)"}`, borderRadius: "14px", padding: "13px 20px", color: toast.type === "error" ? "#991b1b" : "#0f172a", fontSize: "14px", boxShadow: "0 8px 24px rgba(15,23,42,0.08)" }}>
           {toast.type === "error" ? "✕ " : "✓ "}{toast.msg}
         </div>
       )}
@@ -281,98 +312,124 @@ export default function BookingRequests() {
       {/* Reject Modal */}
       {rejectTarget && (
         <RejectModal
-          booking={rejectTarget}
-          onConfirm={handleReject}
+          onConfirm={handleRejectConfirm}
           onClose={() => setRejectTarget(null)}
         />
       )}
 
-      {/* Hero Banner */}
-      <section style={{ position: "relative", overflow: "hidden", background: "radial-gradient(circle at top right, rgba(244,180,0,0.16), transparent 25%), linear-gradient(120deg, rgba(9,18,32,0.98) 0%, rgba(15,41,71,0.94) 48%, rgba(22,58,99,0.88) 100%)", padding: "132px 0 94px" }}>
-        <div style={{ position: "absolute", top: "-110px", right: "-50px", width: "320px", height: "320px", borderRadius: "50%", background: "rgba(244,180,0,0.10)", filter: "blur(80px)" }} />
-        <div style={{ position: "absolute", bottom: "-110px", left: "-60px", width: "260px", height: "260px", borderRadius: "50%", background: "rgba(255,255,255,0.06)", filter: "blur(80px)" }} />
+      {/* ── Hero Banner (matches user BookingsPage style) ── */}
+      <section style={{ position: "relative", overflow: "hidden", background: "linear-gradient(90deg, rgba(9,18,32,0.96) 0%, rgba(15,41,71,0.88) 45%, rgba(22,58,99,0.78) 100%)", padding: "130px 2rem 70px" }}>
+        {/* Glow blobs */}
+        <div style={{ position: "absolute", top: "-120px", right: "-100px", width: "360px", height: "360px", borderRadius: "50%", background: "rgba(244,180,0,0.12)", filter: "blur(70px)" }} />
+        <div style={{ position: "absolute", bottom: "-100px", left: "-80px", width: "300px", height: "300px", borderRadius: "50%", background: "rgba(255,255,255,0.06)", filter: "blur(70px)" }} />
 
-        <div style={{ ...containerStyle, position: "relative", zIndex: 2 }}>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: "10px", padding: "9px 18px", borderRadius: "999px", background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.92)", fontSize: "12px", fontWeight: 700, letterSpacing: "0.7px", marginBottom: "24px", textTransform: "uppercase" }}>
+        <div style={{ ...container, position: "relative", zIndex: 2 }}>
+          {/* Label pill */}
+          <div style={{ display: "inline-flex", alignItems: "center", gap: "10px", padding: "8px 18px", borderRadius: "999px", background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.88)", fontSize: "12px", fontWeight: 600, letterSpacing: "0.5px", marginBottom: "24px" }}>
             <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: "var(--primary)", display: "inline-block" }} />
-            Admin Panel
+            ADMIN PANEL
           </div>
-          <h1 style={{ fontSize: "clamp(36px, 5vw, 62px)", lineHeight: 1.02, fontWeight: 900, color: "#fff", letterSpacing: "-1.7px", marginBottom: "18px", maxWidth: "780px" }}>
-            Booking Requests
-          </h1>
-          <p style={{ color: "rgba(255,255,255,0.78)", fontSize: "16px", lineHeight: 1.9, maxWidth: "700px" }}>
-            Review, approve, or reject user booking requests from one place.
-          </p>
 
-          {/* Stats */}
-          <div style={{ display: "flex", gap: "16px", marginTop: "36px", flexWrap: "wrap" }}>
-            {[{ label: "Total", value: counts.ALL }, { label: "Pending", value: counts.PENDING }, { label: "Approved", value: counts.APPROVED }, { label: "Rejected", value: counts.REJECTED }].map(s => (
-              <div key={s.label} style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: "18px", padding: "16px 22px", minWidth: "100px" }}>
-                <div style={{ fontSize: "28px", fontWeight: 800, color: "#fff", letterSpacing: "-0.5px" }}>{s.value}</div>
-                <div style={{ fontSize: "12px", color: "rgba(255,255,255,0.55)", marginTop: "3px", fontWeight: 500 }}>{s.label}</div>
-              </div>
-            ))}
+          {/* Title + stats row */}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: "24px" }}>
+            <div>
+              <h1 style={{ fontSize: "clamp(32px, 5vw, 56px)", lineHeight: 1.05, fontWeight: 800, color: "#fff", letterSpacing: "-1.5px", marginBottom: "14px", maxWidth: "700px" }}>
+                Booking Requests
+              </h1>
+              <p style={{ color: "rgba(255,255,255,0.72)", fontSize: "16px", lineHeight: 1.8, maxWidth: "560px" }}>
+                Review, approve, or reject user booking requests from one place.
+              </p>
+            </div>
+
+            {/* Stats inside hero */}
+            <div style={{ display: "flex", gap: "12px", flexWrap: "wrap" }}>
+              {[
+                { label: "Total",    value: counts.ALL },
+                { label: "Pending",  value: counts.PENDING },
+                { label: "Approved", value: counts.APPROVED },
+                { label: "Rejected", value: counts.REJECTED },
+              ].map(s => (
+                <div key={s.label} style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", borderRadius: "16px", padding: "14px 20px", minWidth: "80px", textAlign: "center" }}>
+                  <div style={{ fontSize: "26px", fontWeight: 800, color: "#fff", letterSpacing: "-0.5px", lineHeight: 1 }}>{s.value}</div>
+                  <div style={{ fontSize: "11px", color: "rgba(255,255,255,0.55)", marginTop: "4px", fontWeight: 500 }}>{s.label}</div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Main content */}
-      <section style={{ ...containerStyle, marginTop: "-42px", position: "relative", zIndex: 3 }}>
+      {/* ── Content (overlaps hero by pulling up) ── */}
+      <div style={{ ...container, marginTop: "-32px", position: "relative", zIndex: 3, paddingTop: 0, paddingBottom: "40px" }}>
 
-        {/* Search + Filter */}
-        <div style={{ ...pageCardStyle, padding: "24px", marginBottom: "24px" }}>
-          <div style={{ display: "flex", gap: "14px", flexWrap: "wrap", alignItems: "center", marginBottom: "16px" }}>
-            <input
-              type="text"
-              placeholder="Search by user, resource, or purpose..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              style={{ ...inputStyle, maxWidth: "380px" }}
+        {/* ── DETAIL VIEW ── */}
+        {selected ? (
+          <div style={{ paddingTop: "40px" }}>
+            <BookingDetail
+              booking={selected}
+              resource={resources.find(r => r.id === selected.resourceId)}
+              onBack={() => setSelected(null)}
+              onApprove={handleApprove}
+              onReject={setRejectTarget}
+              onDelete={handleDelete}
             />
           </div>
-          <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-            {["ALL", "PENDING", "APPROVED", "REJECTED", "CANCELLED"].map(s => (
-              <button key={s} onClick={() => setStatusFilter(s)} style={{ background: statusFilter === s ? "var(--primary)" : "#fff", color: statusFilter === s ? "#111827" : "var(--text-dark)", border: statusFilter === s ? "none" : "1px solid rgba(15,23,42,0.08)", padding: "9px 18px", borderRadius: "999px", fontSize: "13px", fontWeight: 700, cursor: "pointer", boxShadow: statusFilter === s ? "0 8px 20px rgba(244,180,0,0.18)" : "none", transition: "all 0.2s ease" }}>
-                {s === "ALL" ? "All" : s.charAt(0) + s.slice(1).toLowerCase()} ({counts[s] ?? 0})
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Count label */}
-        <div style={{ marginBottom: "16px" }}>
-          <div style={{ fontSize: "22px", fontWeight: 800, color: "var(--text-dark)", letterSpacing: "-0.5px" }}>All Bookings</div>
-          <div style={{ fontSize: "14px", color: "var(--text-light)", marginTop: "4px" }}>
-            {loading ? "Loading bookings..." : `${filtered.length} booking${filtered.length !== 1 ? "s" : ""} found`}
-          </div>
-        </div>
-
-        {/* Booking list */}
-        {loading ? (
-          <div style={{ ...pageCardStyle, padding: "60px", textAlign: "center", color: "var(--text-light)", fontSize: "16px", fontWeight: 600 }}>
-            Loading booking requests...
-          </div>
-        ) : filtered.length === 0 ? (
-          <div style={{ ...pageCardStyle, padding: "60px", textAlign: "center" }}>
-            <div style={{ fontSize: "42px", marginBottom: "14px" }}>📋</div>
-            <div style={{ fontSize: "20px", fontWeight: 800, color: "var(--text-dark)", marginBottom: "8px" }}>No bookings found</div>
-            <div style={{ color: "var(--text-light)", fontSize: "14px" }}>Try adjusting your search or filter.</div>
-          </div>
         ) : (
-          <div style={{ display: "grid", gap: "16px" }}>
-            {filtered.map(b => (
-              <BookingRow
-                key={b.id}
-                booking={b}
-                resources={resources}
-                onApprove={handleApprove}
-                onReject={setRejectTarget}
-                onDelete={handleDelete}
+          /* ── LIST VIEW ── */
+          <>
+            {/* Search + Filters card */}
+            <div style={{ ...card, padding: "20px 24px", marginBottom: "20px" }}>
+              <input
+                type="text"
+                placeholder="Search by user, resource, or purpose..."
+                value={search}
+                onChange={e => setSearch(e.target.value)}
+                style={{ width: "100%", maxWidth: "360px", padding: "10px 14px", borderRadius: "10px", border: "1px solid rgba(15,23,42,0.1)", fontSize: "14px", outline: "none", marginBottom: "14px", boxSizing: "border-box", fontFamily: "inherit" }}
               />
-            ))}
-          </div>
+              <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
+                {["ALL", "PENDING", "APPROVED", "REJECTED", "CANCELLED"].map(s => (
+                  <button
+                    key={s}
+                    onClick={() => setStatusFilter(s)}
+                    style={{ background: statusFilter === s ? "var(--primary, #f4b400)" : "#fff", color: statusFilter === s ? "#111827" : "#64748b", border: statusFilter === s ? "none" : "1px solid rgba(15,23,42,0.08)", padding: "8px 16px", borderRadius: "999px", fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: "inherit", transition: "all 0.15s" }}
+                  >
+                    {s === "ALL" ? "All" : s.charAt(0) + s.slice(1).toLowerCase()} ({counts[s] ?? 0})
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Results count */}
+            <div style={{ fontSize: "14px", color: "#64748b", marginBottom: "14px" }}>
+              {loading ? "Loading..." : `${filtered.length} booking${filtered.length !== 1 ? "s" : ""} found`}
+            </div>
+
+            {/* List */}
+            {loading ? (
+              <div style={{ ...card, padding: "60px", textAlign: "center", color: "#94a3b8", fontSize: "15px" }}>
+                Loading booking requests...
+              </div>
+            ) : filtered.length === 0 ? (
+              <div style={{ ...card, padding: "60px", textAlign: "center" }}>
+                <div style={{ fontSize: "38px", marginBottom: "12px" }}>📋</div>
+                <div style={{ fontSize: "18px", fontWeight: 700, color: "#0f172a", marginBottom: "6px" }}>No bookings found</div>
+                <div style={{ color: "#94a3b8", fontSize: "14px" }}>Try adjusting your search or filter.</div>
+              </div>
+            ) : (
+              <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                {filtered.map(b => (
+                  <BookingCard
+                    key={b.id}
+                    booking={b}
+                    resource={resources.find(r => r.id === b.resourceId)}
+                    onClick={() => setSelected(b)}
+                  />
+                ))}
+              </div>
+            )}
+          </>
         )}
-      </section>
+      </div>
     </div>
   );
 }
