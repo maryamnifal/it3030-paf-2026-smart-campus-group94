@@ -40,7 +40,7 @@ export default function Navbar() {
         position: "sticky",
         top: 0,
         zIndex: 1000,
-        background: "rgba(255,255,255,0.92)",
+        background: "rgba(255, 255, 255, 0.92)",
         backdropFilter: "blur(12px)",
         borderBottom: "1px solid rgba(15,23,42,0.08)",
         boxShadow: scrolled

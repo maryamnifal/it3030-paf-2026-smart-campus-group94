@@ -26,6 +26,12 @@ export const updateBooking = (id, data) => api.put(`/bookings/${id}`, data);
 
 export const getAllBookings = () => api.get("/bookings");
 
+// ✅ FIXED: Dedicated availability endpoint — authenticated users (not admin-only)
+// Previously TimeSlotSelector called getAllBookings() which is admin-only → 401 error
+// → catch block silently set bookings=[] → all slots appeared available → double booking allowed
+export const getAvailability = (resourceId, date) =>
+  api.get("/bookings/availability", { params: { resourceId, date } });
+
 export const approveBooking = (id) => api.put(`/bookings/${id}/approve`);
 
 export const rejectBooking = (id, rejectionReason) =>

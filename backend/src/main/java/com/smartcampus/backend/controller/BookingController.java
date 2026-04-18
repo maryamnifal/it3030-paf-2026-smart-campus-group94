@@ -44,6 +44,17 @@ public class BookingController {
         return ResponseEntity.ok(bookingService.getAllBookings());
     }
 
+    // ✅ NEW: Public availability check for regular users
+    // Returns PENDING + APPROVED bookings for a resource on a date
+    // Frontend uses this to grey out already-booked time slots
+    // GET /api/bookings/availability?resourceId=xxx&date=2026-04-21
+    @GetMapping("/availability")
+    public ResponseEntity<List<BookingResponseDTO>> getAvailability(
+            @RequestParam String resourceId,
+            @RequestParam String date) {
+        return ResponseEntity.ok(bookingService.getBookingsForResourceAndDate(resourceId, date));
+    }
+
     // 4. Update a booking
     @PutMapping("/{id}")
     public ResponseEntity<BookingResponseDTO> updateBooking(
@@ -60,7 +71,7 @@ public class BookingController {
         return ResponseEntity.ok(bookingService.approveBooking(id));
     }
 
-    // 5. Reject a booking
+    // 6. Reject a booking
     @PutMapping("/{id}/reject")
     public ResponseEntity<BookingResponseDTO> rejectBooking(
             @PathVariable String id,
@@ -68,14 +79,14 @@ public class BookingController {
         return ResponseEntity.ok(bookingService.rejectBooking(id, statusUpdate));
     }
 
-    // 6. Cancel a booking
+    // 7. Cancel a booking
     @PutMapping("/{id}/cancel")
     public ResponseEntity<BookingResponseDTO> cancelBooking(
             @PathVariable String id) {
         return ResponseEntity.ok(bookingService.cancelBooking(id));
     }
 
-    // 7. Delete a booking
+    // 8. Delete a booking
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteBooking(
             @PathVariable String id) {
