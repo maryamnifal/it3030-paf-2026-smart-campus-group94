@@ -6,6 +6,7 @@ import {
   cancelBooking,
   updateBooking,
 } from "../../api/bookingApi";
+import TimeSlotSelector from "../../components/TimeSlotSelector";
 
 const STATUS_CONFIG = {
   PENDING: { label: "Pending", bg: "#fef9c3", color: "#854d0e" },
@@ -85,11 +86,17 @@ function BookingForm({ onSuccess, onCancel }) {
     purpose: "",
     expectedAttendees: 1,
   });
+  const [selectedSlot, setSelectedSlot] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
   const set = (key, value) => {
     setForm((prev) => ({ ...prev, [key]: value }));
+  };
+
+  const handleSlotSelect = (startTime, endTime) => {
+    setSelectedSlot({ start: startTime, end: endTime });
+    setForm((prev) => ({ ...prev, startTime, endTime }));
   };
 
   useEffect(() => {
@@ -239,29 +246,21 @@ function BookingForm({ onSuccess, onCancel }) {
               <input
                 type="date"
                 value={form.date}
-                onChange={(e) => set("date", e.target.value)}
+                onChange={(e) => {
+                  set("date", e.target.value);
+                  setSelectedSlot(null);
+                }}
                 min={new Date().toISOString().split("T")[0]}
                 style={inputStyle}
               />
             </div>
 
-            <div>
-              <label style={labelStyle}>Start Time *</label>
-              <input
-                type="time"
-                value={form.startTime}
-                onChange={(e) => set("startTime", e.target.value)}
-                style={inputStyle}
-              />
-            </div>
-
-            <div>
-              <label style={labelStyle}>End Time *</label>
-              <input
-                type="time"
-                value={form.endTime}
-                onChange={(e) => set("endTime", e.target.value)}
-                style={inputStyle}
+            <div style={{ gridColumn: "1 / -1" }}>
+              <TimeSlotSelector
+                resource={selected}
+                selectedDate={form.date}
+                selectedSlot={selectedSlot}
+                onSlotSelect={handleSlotSelect}
               />
             </div>
 
@@ -553,9 +552,19 @@ function EditBookingModal({ booking, resources, onSave, onClose }) {
     purpose: booking.purpose || "",
     expectedAttendees: booking.expectedAttendees || 1,
   });
+  const [selectedSlot, setSelectedSlot] = useState({
+    start: booking.startTime?.slice(0, 5),
+    end: booking.endTime?.slice(0, 5),
+  });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const set = (k, v) => setForm(f => ({ ...f, [k]: v }));
+  
+  const handleSlotSelect = (startTime, endTime) => {
+    setSelectedSlot({ start: startTime, end: endTime });
+    setForm(f => ({ ...f, startTime, endTime }));
+  };
+  
   const selected = resources.find(r => r.id === booking.resourceId);
 
   const handleSubmit = async () => {
@@ -659,28 +668,20 @@ function EditBookingModal({ booking, resources, onSave, onClose }) {
             <input
               type="date"
               value={form.date}
-              onChange={(e) => set("date", e.target.value)}
+              onChange={(e) => {
+                set("date", e.target.value);
+                setSelectedSlot({ start: "", end: "" });
+              }}
               style={inputStyle}
             />
           </div>
 
-          <div>
-            <label style={labelStyle}>Start Time *</label>
-            <input
-              type="time"
-              value={form.startTime}
-              onChange={(e) => set("startTime", e.target.value)}
-              style={inputStyle}
-            />
-          </div>
-
-          <div>
-            <label style={labelStyle}>End Time *</label>
-            <input
-              type="time"
-              value={form.endTime}
-              onChange={(e) => set("endTime", e.target.value)}
-              style={inputStyle}
+          <div style={{ gridColumn: "1 / -1" }}>
+            <TimeSlotSelector
+              resource={selected}
+              selectedDate={form.date}
+              selectedSlot={selectedSlot}
+              onSlotSelect={handleSlotSelect}
             />
           </div>
 

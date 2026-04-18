@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getMyBookings } from "../../api/bookingApi";
 import { getMyTickets } from "../../api/ticketApi";
+import { getAllResources } from "../../api/resourceApi"; // ✅ NEW
 
 export default function UserDashboard() {
   const navigate = useNavigate();
@@ -10,6 +11,7 @@ export default function UserDashboard() {
 
   const [bookings, setBookings] = useState([]);
   const [tickets, setTickets] = useState([]);
+  const [resources, setResources] = useState([]); // ✅ NEW
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -17,17 +19,20 @@ export default function UserDashboard() {
       try {
         setLoading(true);
 
-        const [bookingsRes, ticketsRes] = await Promise.all([
+        const [bookingsRes, ticketsRes, resourcesRes] = await Promise.all([ // ✅ CHANGED
           userId ? getMyBookings(userId) : Promise.resolve({ data: [] }),
           getMyTickets(),
+          getAllResources(), // ✅ NEW
         ]);
 
         setBookings(Array.isArray(bookingsRes.data) ? bookingsRes.data : []);
         setTickets(Array.isArray(ticketsRes.data) ? ticketsRes.data : []);
+        setResources(Array.isArray(resourcesRes.data) ? resourcesRes.data : []); // ✅ NEW
       } catch (error) {
         console.error("Failed to load user dashboard data:", error);
         setBookings([]);
         setTickets([]);
+        setResources([]); // ✅ NEW
       } finally {
         setLoading(false);
       }
@@ -35,6 +40,13 @@ export default function UserDashboard() {
 
     loadDashboardData();
   }, [userId]);
+
+  // ✅ NEW: Build a quick lookup map { resourceId -> resource object }
+  const resourceMap = useMemo(() => {
+    const map = {};
+    resources.forEach((r) => { map[r.id] = r; });
+    return map;
+  }, [resources]);
 
   const analytics = useMemo(() => {
     const totalBookings = bookings.length;
@@ -392,57 +404,68 @@ export default function UserDashboard() {
               </div>
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
-                {analytics.recentBookings.map((booking) => (
-                  <div
-                    key={booking.id}
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      alignItems: "flex-start",
-                      gap: "16px",
-                      padding: "16px 18px",
-                      borderRadius: "18px",
-                      background: "#f8fafc",
-                      border: "1px solid rgba(15,23,42,0.06)",
-                    }}
-                  >
-                    <div>
-                      <div
-                        style={{
-                          fontSize: "15px",
-                          fontWeight: 700,
-                          color: "#0f172a",
-                          marginBottom: "6px",
-                        }}
-                      >
-                        {booking.resourceName || booking.resourceId || "Resource"}
-                      </div>
-                      <div
-                        style={{
-                          fontSize: "13px",
-                          color: "#64748b",
-                          lineHeight: 1.7,
-                        }}
-                      >
-                        {booking.date} · {String(booking.startTime).slice(0, 5)} -{" "}
-                        {String(booking.endTime).slice(0, 5)}
-                      </div>
-                      <div
-                        style={{
-                          fontSize: "13px",
-                          color: "#64748b",
-                          marginTop: "4px",
-                        }}
-                      >
-                        {booking.purpose}
-                      </div>
-                    </div>
+                {analytics.recentBookings.map((booking) => {
+                  // ✅ FIXED: Look up resource name from resourceMap
+                  const resource = resourceMap[booking.resourceId];
+                  const displayName = resource?.name || booking.resourceName || "Unknown Resource";
 
-                    <span style={bookingStatusBadgeStyle(booking.status)}>
-                      {booking.status}
-                    </span>
-                  </div>
-                ))}
+                  return (
+                    <div
+                      key={booking.id}
+                      style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "flex-start",
+                        gap: "16px",
+                        padding: "16px 18px",
+                        borderRadius: "18px",
+                        background: "#f8fafc",
+                        border: "1px solid rgba(15,23,42,0.06)",
+                      }}
+                    >
+                      <div>
+                        <div
+                          style={{
+                            fontSize: "15px",
+                            fontWeight: 700,
+                            color: "#0f172a",
+                            marginBottom: "6px",
+                          }}
+                        >
+                          {displayName} {/* ✅ Now shows "Lecture Hall 01" instead of the ID */}
+                        </div>
+                        {resource?.location && (
+                          <div style={{ fontSize: "12px", color: "#94a3b8", marginBottom: "4px" }}>
+                            {resource.location}
+                          </div>
+                        )}
+                        <div
+                          style={{
+                            fontSize: "13px",
+                            color: "#64748b",
+                            lineHeight: 1.7,
+                          }}
+                        >
+                          {booking.date} · {String(booking.startTime).slice(0, 5)} -{" "}
+                          {String(booking.endTime).slice(0, 5)}
+                        </div>
+                        <div
+                          style={{
+                            fontSize: "13px",
+                            color: "#64748b",
+                            marginTop: "4px",
+                          }}
+                        >
+                          {booking.purpose}
+                        </div>
+                      </div>
+
+                      <span style={bookingStatusBadgeStyle(booking.status)}>
+                        {booking.status}
+                      </span>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>

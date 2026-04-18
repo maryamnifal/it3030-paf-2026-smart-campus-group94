@@ -12,19 +12,19 @@ import java.util.List;
 @Repository
 public interface BookingRepository extends MongoRepository<Booking, String> {
 
-    // Get all bookings for a specific user
     List<Booking> findByUserId(String userId);
 
-    // Get all bookings for a specific resource
     List<Booking> findByResourceId(String resourceId);
 
-    // Conflict detection query:
-    // Checks if there's an APPROVED booking on the same resource and date
-    // where the time slots overlap
-    @Query("{ 'resourceId': ?0, 'date': ?1, 'status': 'APPROVED', " +
+    // ✅ FIX 1: Was only 'APPROVED' — now blocks PENDING + APPROVED (prevents double-booking)
+    @Query("{ 'resourceId': ?0, 'date': ?1, 'status': { $in: ['PENDING', 'APPROVED'] }, " +
            "'startTime': { $lt: ?3 }, 'endTime': { $gt: ?2 } }")
     List<Booking> findConflictingBookings(String resourceId,
                                           LocalDate date,
                                           LocalTime startTime,
                                           LocalTime endTime);
+
+    // ✅ FIX 2: NEW — used by /availability endpoint for regular users
+    @Query("{ 'resourceId': ?0, 'date': ?1, 'status': { $in: ['PENDING', 'APPROVED'] } }")
+    List<Booking> findBookingsForResourceAndDate(String resourceId, LocalDate date);
 }
