@@ -23,13 +23,14 @@ import java.util.stream.Collectors;
 public class TicketService {
 
     private final TicketRepository ticketRepository;
+    private final EmailService emailService;
 
     // Directory where uploaded images will be stored
     private final String UPLOAD_DIR = "uploads/tickets/";
 
     // =====================
     // VALID STATUS TRANSITIONS
-    // =====================
+   
     // OPEN → IN_PROGRESS → RESOLVED → CLOSED
     // Any status → REJECTED (admin only)
     private boolean isValidStatusTransition(String currentStatus, String newStatus) {
@@ -45,7 +46,6 @@ public class TicketService {
 
     // =====================
     // TICKET CRUD
-    // =====================
 
     // Create a new ticket
     public TicketResponseDTO createTicket(TicketRequestDTO request, String userId, String userName) {
@@ -99,7 +99,7 @@ public class TicketService {
         return mapToResponse(ticket);
     }
 
-    // Update ticket status (admin/technician)
+    // Update ticket status (admin)
     public TicketResponseDTO updateTicketStatus(String ticketId, TicketStatusUpdateDTO request, String userId) {
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new RuntimeException("Ticket not found with id: " + ticketId));
@@ -139,13 +139,26 @@ public class TicketService {
     // Assign technician to ticket (admin only)
     public TicketResponseDTO assignTechnician(String ticketId, AssignTicketDTO request) {
         Ticket ticket = ticketRepository.findById(ticketId)
-                .orElseThrow(() -> new RuntimeException("Ticket not found with id: " + ticketId));
+            .orElseThrow(() -> new RuntimeException("Ticket not found with id: " + ticketId));
 
         ticket.setAssignedTo(request.getTechnicianId());
         ticket.setAssignedToName(request.getTechnicianName());
         ticket.setUpdatedAt(LocalDateTime.now());
 
-        return mapToResponse(ticketRepository.save(ticket));
+        Ticket saved = ticketRepository.save(ticket);
+
+        // Send email notification to technician
+        try {
+            emailService.sendTechnicianAssignmentEmail(
+                request.getTechnicianEmail(),
+                request.getTechnicianName(),
+                saved
+            );
+        } catch (Exception e) {
+            System.err.println("Email notification failed: " + e.getMessage());
+        }
+
+        return mapToResponse(saved);
     }
 
     // Delete ticket (admin only)
