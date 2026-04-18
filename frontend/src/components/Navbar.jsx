@@ -240,7 +240,34 @@ export default function Navbar() {
                   e.currentTarget.style.color = navTextColor;
                 }}
               >
-                Login
+                Login with Google
+              </a>
+
+              <a
+                href="http://localhost:8080/oauth2/authorization/github"
+                style={{
+                  background: "transparent",
+                  color: navTextColor,
+                  fontSize: "14px",
+                  fontWeight: 600,
+                  padding: "10px 16px",
+                  borderRadius: "999px",
+                  border: "1px solid rgba(255,255,255,0.18)",
+                  transition: "all 0.25s ease",
+                  textDecoration: "none",
+                  display: "inline-block",
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = "#fff";
+                  e.currentTarget.style.background = "rgba(255,255,255,0.1)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor =
+                    "rgba(255,255,255,0.18)";
+                  e.currentTarget.style.background = "transparent";
+                }}
+              >
+                GitHub Login
               </a>
 
               <a
@@ -259,6 +286,8 @@ export default function Navbar() {
               >
                 Get Started
               </a>
+
+              
             </>
           )}
         </div>
