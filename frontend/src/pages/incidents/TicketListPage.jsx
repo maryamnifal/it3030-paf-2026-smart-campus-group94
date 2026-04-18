@@ -201,8 +201,10 @@ export default function TicketListPage() {
   };
 
   useEffect(() => {
-    fetchTickets();
-  }, [statusFilter, priorityFilter]);
+    if (role !== null) {
+        fetchTickets();
+    }
+    }, [statusFilter, priorityFilter, role]);
 
   const handleDelete = async (id) => {
     if (!window.confirm("Are you sure you want to delete this ticket?")) return;
