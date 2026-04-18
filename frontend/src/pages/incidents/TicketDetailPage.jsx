@@ -85,6 +85,7 @@ export default function TicketDetailPage() {
   const [assignForm, setAssignForm] = useState({
     technicianId: "",
     technicianName: "",
+    technicianEmail:"",
   });
 
   const [newComment, setNewComment] = useState("");
@@ -547,21 +548,29 @@ export default function TicketDetailPage() {
                   </button>
                 </div>
 
-                <div>
-                  <label style={labelStyle}>Assign Technician</label>
-                  <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-                    <input
-                      placeholder="Technician ID"
-                      value={assignForm.technicianId}
-                      onChange={(e) => setAssignForm({ ...assignForm, technicianId: e.target.value })}
-                      style={inputStyle}
-                    />
-                    <input
-                      placeholder="Technician Name"
-                      value={assignForm.technicianName}
-                      onChange={(e) => setAssignForm({ ...assignForm, technicianName: e.target.value })}
-                      style={inputStyle}
-                    />
+                {/* Assign Technician */}
+            <div>
+            <label style={labelStyle}>Assign Technician</label>
+            <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+                <input
+                placeholder="Technician ID"
+                value={assignForm.technicianId}
+                onChange={(e) => setAssignForm({ ...assignForm, technicianId: e.target.value })}
+                style={inputStyle}
+                />
+                <input
+                placeholder="Technician Name"
+                value={assignForm.technicianName}
+                onChange={(e) => setAssignForm({ ...assignForm, technicianName: e.target.value })}
+                style={inputStyle}
+                />
+                <input
+                placeholder="Technician Email"
+                type="email"
+                value={assignForm.technicianEmail || ""}
+                onChange={(e) => setAssignForm({ ...assignForm, technicianEmail: e.target.value })}
+                style={inputStyle}
+                />
                     <button
                       onClick={handleAssign}
                       style={{ background: "#fff", color: "var(--secondary)", border: "1px solid rgba(15,23,42,0.08)", padding: "12px 24px", borderRadius: "999px", fontSize: "14px", fontWeight: 700, cursor: "pointer" }}
