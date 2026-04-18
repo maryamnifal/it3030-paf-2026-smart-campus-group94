@@ -31,19 +31,9 @@ public class ResourceController {
             @RequestParam(required = false) String location,
             @RequestParam(required = false) Integer capacity
     ) {
-        if (type != null && !type.isBlank()) {
-            return ResponseEntity.ok(resourceService.getResourcesByType(type));
-        }
-
-        if (location != null && !location.isBlank()) {
-            return ResponseEntity.ok(resourceService.getResourcesByLocation(location));
-        }
-
-        if (capacity != null) {
-            return ResponseEntity.ok(resourceService.getResourcesByCapacity(capacity));
-        }
-
-        return ResponseEntity.ok(resourceService.getAllResources());
+        return ResponseEntity.ok(
+                resourceService.getFilteredResources(type, location, capacity)
+        );
     }
 
     @GetMapping("/{id}")

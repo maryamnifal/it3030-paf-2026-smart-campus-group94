@@ -9,8 +9,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.oauth2.core.user.OAuth2User;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -28,8 +28,10 @@ public class TicketController {
     private final UserRepository userRepository;
 
     // Helper method to get current logged in user from JWT token
-    private User getCurrentUser(String userEmail) {
-        return userRepository.findByEmail(userEmail)
+    private User getCurrentUser() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        String email = (String) authentication.getPrincipal();
+        return userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
     }
 
@@ -41,10 +43,8 @@ public class TicketController {
     // Create a new ticket (USER + ADMIN)
     @PostMapping
     public ResponseEntity<TicketResponseDTO> createTicket(
-            @Valid @RequestBody TicketRequestDTO request,
-            @RequestHeader("X-User-Email") String userEmail) {
-
-        User user = getCurrentUser(userEmail);
+            @Valid @RequestBody TicketRequestDTO request) {
+        User user = getCurrentUser();
         TicketResponseDTO response = ticketService.createTicket(request, user.getId(), user.getName());
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
@@ -55,17 +55,14 @@ public class TicketController {
     public ResponseEntity<List<TicketResponseDTO>> getAllTickets(
             @RequestParam(required = false) String status,
             @RequestParam(required = false) String priority) {
-
         return ResponseEntity.ok(ticketService.getAllTickets(status, priority));
     }
 
     // GET /api/tickets/my
     // Get tickets created by the logged in user (USER + ADMIN)
     @GetMapping("/my")
-    public ResponseEntity<List<TicketResponseDTO>> getMyTickets(
-            @RequestHeader("X-User-Email") String userEmail) {
-
-        User user = getCurrentUser(userEmail);
+    public ResponseEntity<List<TicketResponseDTO>> getMyTickets() {
+        User user = getCurrentUser();
         return ResponseEntity.ok(ticketService.getMyTickets(user.getId()));
     }
 
@@ -81,10 +78,8 @@ public class TicketController {
     @PatchMapping("/{id}/status")
     public ResponseEntity<TicketResponseDTO> updateStatus(
             @PathVariable String id,
-            @Valid @RequestBody TicketStatusUpdateDTO request,
-            @RequestHeader("X-User-Email") String userEmail) {
-
-        User user = getCurrentUser(userEmail);
+            @Valid @RequestBody TicketStatusUpdateDTO request) {
+        User user = getCurrentUser();
         return ResponseEntity.ok(ticketService.updateTicketStatus(id, request, user.getId()));
     }
 
@@ -94,7 +89,6 @@ public class TicketController {
     public ResponseEntity<TicketResponseDTO> assignTechnician(
             @PathVariable String id,
             @Valid @RequestBody AssignTicketDTO request) {
-
         return ResponseEntity.ok(ticketService.assignTechnician(id, request));
     }
 
@@ -103,7 +97,7 @@ public class TicketController {
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteTicket(@PathVariable String id) {
         ticketService.deleteTicket(id);
-        return ResponseEntity.noContent().build(); // 204 No Content
+        return ResponseEntity.noContent().build();
     }
 
     // =====================
@@ -115,10 +109,8 @@ public class TicketController {
     @PostMapping("/{id}/comments")
     public ResponseEntity<TicketResponseDTO> addComment(
             @PathVariable String id,
-            @Valid @RequestBody CommentRequestDTO request,
-            @RequestHeader("X-User-Email") String userEmail) {
-
-        User user = getCurrentUser(userEmail);
+            @Valid @RequestBody CommentRequestDTO request) {
+        User user = getCurrentUser();
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(ticketService.addComment(id, request, user.getId(), user.getName()));
     }
@@ -129,10 +121,8 @@ public class TicketController {
     public ResponseEntity<TicketResponseDTO> editComment(
             @PathVariable String id,
             @PathVariable String commentId,
-            @Valid @RequestBody CommentRequestDTO request,
-            @RequestHeader("X-User-Email") String userEmail) {
-
-        User user = getCurrentUser(userEmail);
+            @Valid @RequestBody CommentRequestDTO request) {
+        User user = getCurrentUser();
         boolean isAdmin = "ADMIN".equals(user.getRole());
         return ResponseEntity.ok(ticketService.editComment(id, commentId, request, user.getId(), isAdmin));
     }
@@ -142,13 +132,11 @@ public class TicketController {
     @DeleteMapping("/{id}/comments/{commentId}")
     public ResponseEntity<Void> deleteComment(
             @PathVariable String id,
-            @PathVariable String commentId,
-            @RequestHeader("X-User-Email") String userEmail) {
-
-        User user = getCurrentUser(userEmail);
+            @PathVariable String commentId) {
+        User user = getCurrentUser();
         boolean isAdmin = "ADMIN".equals(user.getRole());
         ticketService.deleteComment(id, commentId, user.getId(), isAdmin);
-        return ResponseEntity.noContent().build(); // 204 No Content
+        return ResponseEntity.noContent().build();
     }
 
     // =====================
@@ -160,10 +148,8 @@ public class TicketController {
     @PostMapping(value = "/{id}/attachments", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<TicketResponseDTO> uploadAttachments(
             @PathVariable String id,
-            @RequestParam("files") List<MultipartFile> files,
-            @RequestHeader("X-User-Email") String userEmail) throws IOException {
-
-        User user = getCurrentUser(userEmail);
+            @RequestParam("files") List<MultipartFile> files) throws IOException {
+        User user = getCurrentUser();
         return ResponseEntity.ok(ticketService.uploadAttachments(id, files, user.getId()));
     }
 }
