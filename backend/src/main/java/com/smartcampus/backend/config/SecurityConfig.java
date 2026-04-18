@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -34,10 +35,10 @@ public class SecurityConfig {
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
             )
             .authorizeHttpRequests(auth -> auth
-
                 // OAuth public
                 .requestMatchers("/oauth2/**", "/login/**").permitAll()
-               // Public resource reads
+
+                // Public resource reads
                 .requestMatchers(HttpMethod.GET, "/api/resources").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/resources/**").permitAll()
 
@@ -46,6 +47,11 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.PUT, "/api/resources/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.PATCH, "/api/resources/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/api/resources/**").hasRole("ADMIN")
+
+                // ✅ NEW: Availability check — any logged-in user can call this
+                // Must be declared BEFORE the admin-only GET /api/bookings rule below
+                // so Spring Security matches /availability first and doesn't fall through to hasRole(ADMIN)
+                .requestMatchers(HttpMethod.GET, "/api/bookings/availability").authenticated()
 
                 // Booking rules
                 .requestMatchers(HttpMethod.GET, "/api/bookings/my").authenticated()
@@ -56,6 +62,7 @@ public class SecurityConfig {
 
                 // Module C - Ticket rules (admin only)
                 .requestMatchers(HttpMethod.GET, "/api/tickets").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/api/tickets/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.PATCH, "/api/tickets/*/assign").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.PATCH, "/api/tickets/*/status").hasRole("ADMIN")
 
@@ -66,9 +73,15 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/tickets/*/comments").authenticated()
                 .requestMatchers(HttpMethod.PUT, "/api/tickets/*/comments/**").authenticated()
                 .requestMatchers(HttpMethod.DELETE, "/api/tickets/*/comments/**").authenticated()
-                .requestMatchers(HttpMethod.DELETE, "/api/tickets/**").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.POST, "/api/tickets/*/attachments").authenticated()
                 .anyRequest().authenticated()
+            )
+            .exceptionHandling(exceptions -> exceptions
+                .authenticationEntryPoint((request, response, authException) -> {
+                    response.setStatus(HttpStatus.UNAUTHORIZED.value());
+                    response.setContentType("application/json");
+                    response.getWriter().write("{\"error\": \"Unauthorized\"}");
+                })
             )
             .oauth2Login(oauth2 -> oauth2
                 .successHandler(oAuth2SuccessHandler)
