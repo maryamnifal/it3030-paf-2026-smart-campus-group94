@@ -113,7 +113,7 @@ function AppLayout() {
             }
           />
 
-          <Route
+         <Route
             path="/notifications"
             element={
               <ProtectedRoute>
