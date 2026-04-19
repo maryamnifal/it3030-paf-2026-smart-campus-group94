@@ -9,6 +9,7 @@ import {
   deleteComment,
 } from "../../api/ticketApi";
 import { useAuth } from "../../context/AuthContext";
+import jsPDF from "jspdf";
 
 const STATUS_CONFIG = {
   OPEN: { label: "Open", bg: "#fee2e2", color: "#991b1b" },
@@ -174,6 +175,172 @@ export default function TicketDetailPage() {
     }
   };
 
+  const handleDownloadPDF = () => {
+  const doc = new jsPDF();
+  const pageWidth = doc.internal.pageSize.getWidth();
+  let y = 20;
+
+  // Header
+  doc.setFillColor(11, 18, 32);
+  doc.rect(0, 0, pageWidth, 40, "F");
+  doc.setTextColor(244, 180, 0);
+  doc.setFontSize(20);
+  doc.setFont("helvetica", "bold");
+  doc.text("UniSphere", 20, 18);
+  doc.setFontSize(10);
+  doc.setTextColor(255, 255, 255);
+  doc.text("Smart Campus Operations Hub", 20, 27);
+  doc.text("Incident Ticket Report", 20, 35);
+
+  y = 55;
+
+  // Ticket ID and Status
+  doc.setTextColor(0, 0, 0);
+  doc.setFontSize(16);
+  doc.setFont("helvetica", "bold");
+  doc.text(`Ticket #${ticket.id?.slice(-6).toUpperCase()}`, 20, y);
+  y += 8;
+
+  // Status and Priority badges
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(100, 100, 100);
+  doc.text(`Status: ${ticket.status}   |   Priority: ${ticket.priority}   |   Category: ${ticket.category}`, 20, y);
+  y += 15;
+
+  // Divider
+  doc.setDrawColor(244, 180, 0);
+  doc.setLineWidth(0.5);
+  doc.line(20, y, pageWidth - 20, y);
+  y += 10;
+
+  // Ticket Details Section
+  doc.setFontSize(13);
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(15, 23, 42);
+  doc.text("Incident Details", 20, y);
+  y += 8;
+
+  const details = [
+    ["Reported By", ticket.createdByName || "N/A"],
+    ["Location / Resource", ticket.resourceName || "N/A"],
+    ["Contact Details", ticket.contactDetails || "N/A"],
+    ["Assigned To", ticket.assignedToName || "Unassigned"],
+    ["Created At", ticket.createdAt ? new Date(ticket.createdAt).toLocaleString() : "N/A"],
+  ];
+
+  details.forEach(([label, value]) => {
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(100, 100, 100);
+    doc.text(label + ":", 20, y);
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(15, 23, 42);
+    const lines = doc.splitTextToSize(value, pageWidth - 80);
+    doc.text(lines, 80, y);
+    y += 8 * lines.length;
+  });
+
+  y += 5;
+
+  // Description
+  doc.setFontSize(10);
+  doc.setFont("helvetica", "bold");
+  doc.setTextColor(100, 100, 100);
+  doc.text("Description:", 20, y);
+  y += 6;
+  doc.setFont("helvetica", "normal");
+  doc.setTextColor(15, 23, 42);
+  const descLines = doc.splitTextToSize(ticket.description || "N/A", pageWidth - 40);
+  doc.text(descLines, 20, y);
+  y += 6 * descLines.length + 5;
+
+  // Resolution Notes
+  if (ticket.resolutionNotes) {
+    doc.setDrawColor(200, 200, 200);
+    doc.line(20, y, pageWidth - 20, y);
+    y += 8;
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(22, 101, 52);
+    doc.text("Resolution Notes:", 20, y);
+    y += 6;
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(15, 23, 42);
+    const resLines = doc.splitTextToSize(ticket.resolutionNotes, pageWidth - 40);
+    doc.text(resLines, 20, y);
+    y += 6 * resLines.length + 5;
+  }
+
+  // Rejection Reason
+  if (ticket.rejectionReason) {
+    doc.setDrawColor(200, 200, 200);
+    doc.line(20, y, pageWidth - 20, y);
+    y += 8;
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(153, 27, 27);
+    doc.text("Rejection Reason:", 20, y);
+    y += 6;
+    doc.setFont("helvetica", "normal");
+    doc.setTextColor(15, 23, 42);
+    const rejLines = doc.splitTextToSize(ticket.rejectionReason, pageWidth - 40);
+    doc.text(rejLines, 20, y);
+    y += 6 * rejLines.length + 5;
+  }
+
+  // Comments Section
+  if (ticket.comments && ticket.comments.length > 0) {
+    if (y > 220) {
+      doc.addPage();
+      y = 20;
+    }
+
+    doc.setDrawColor(244, 180, 0);
+    doc.line(20, y, pageWidth - 20, y);
+    y += 10;
+
+    doc.setFontSize(13);
+    doc.setFont("helvetica", "bold");
+    doc.setTextColor(15, 23, 42);
+    doc.text(`Comments (${ticket.comments.length})`, 20, y);
+    y += 10;
+
+    ticket.comments.forEach((comment, index) => {
+      if (y > 260) {
+        doc.addPage();
+        y = 20;
+      }
+
+      doc.setFontSize(10);
+      doc.setFont("helvetica", "bold");
+      doc.setTextColor(15, 23, 42);
+      doc.text(`${index + 1}. ${comment.authorName}`, 20, y);
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(100, 100, 100);
+      doc.text(new Date(comment.createdAt).toLocaleDateString(), pageWidth - 50, y);
+      y += 6;
+
+      doc.setTextColor(15, 23, 42);
+      const commentLines = doc.splitTextToSize(comment.content, pageWidth - 40);
+      doc.text(commentLines, 20, y);
+      y += 6 * commentLines.length + 6;
+    });
+  }
+
+  // Footer
+  doc.setDrawColor(244, 180, 0);
+  doc.line(20, 280, pageWidth - 20, 280);
+  doc.setFontSize(8);
+  doc.setTextColor(100, 100, 100);
+  doc.setFont("helvetica", "normal");
+  doc.text("Generated by UniSphere · SLIIT IT3030 · Group 94", 20, 287);
+  doc.text(new Date().toLocaleString(), pageWidth - 60, 287);
+
+  // Save the PDF
+  doc.save(`ticket-${ticket.id?.slice(-6).toUpperCase()}.pdf`);
+};
+
   if (loading) {
     return (
       <div style={{ minHeight: "100vh", background: "var(--bg-light)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--text-light)", fontSize: "16px" }}>
@@ -225,21 +392,55 @@ export default function TicketDetailPage() {
             INCIDENT TICKET
           </div>
 
-          <h1 style={{ fontSize: "clamp(28px, 4vw, 48px)", lineHeight: 1.05, fontWeight: 800, color: "#fff", letterSpacing: "-1.5px", marginBottom: "16px" }}>
-            Ticket #{ticket.id ? ticket.id.slice(-6).toUpperCase() : ""}
-          </h1>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "20px" }}>
+            <div>
+                <h1 style={{ fontSize: "clamp(28px, 4vw, 48px)", lineHeight: 1.05, fontWeight: 800, color: "#fff", letterSpacing: "-1.5px", marginBottom: "16px" }}>
+                Ticket #{ticket.id ? ticket.id.slice(-6).toUpperCase() : ""}
+                </h1>
 
-          <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-            <span style={{ background: statusCfg.bg, color: statusCfg.color, borderRadius: "999px", padding: "6px 16px", fontSize: "12px", fontWeight: 700 }}>
-              {ticket.status}
-            </span>
-            <span style={{ background: priorityCfg.bg, color: priorityCfg.color, borderRadius: "999px", padding: "6px 16px", fontSize: "12px", fontWeight: 700 }}>
-              {ticket.priority} PRIORITY
-            </span>
-            <span style={{ background: "rgba(255,255,255,0.1)", color: "#fff", borderRadius: "999px", padding: "6px 16px", fontSize: "12px", fontWeight: 700 }}>
-              {ticket.category}
-            </span>
-          </div>
+                <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
+                <span style={{ background: statusCfg.bg, color: statusCfg.color, borderRadius: "999px", padding: "6px 16px", fontSize: "12px", fontWeight: 700 }}>
+                    {ticket.status}
+                </span>
+                <span style={{ background: priorityCfg.bg, color: priorityCfg.color, borderRadius: "999px", padding: "6px 16px", fontSize: "12px", fontWeight: 700 }}>
+                    {ticket.priority} PRIORITY
+                </span>
+                <span style={{ background: "rgba(255,255,255,0.1)", color: "#fff", borderRadius: "999px", padding: "6px 16px", fontSize: "12px", fontWeight: 700 }}>
+                    {ticket.category}
+                </span>
+                </div>
+            </div>
+
+            <button
+                onClick={handleDownloadPDF}
+                style={{
+                background: "rgba(255,255,255,0.1)",
+                border: "1px solid rgba(255,255,255,0.2)",
+                color: "#fff",
+                cursor: "pointer",
+                fontSize: "14px",
+                fontWeight: 600,
+                padding: "10px 20px",
+                borderRadius: "999px",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: "8px",
+                alignSelf: "flex-start",
+                }}
+                onMouseEnter={(e) => {
+                    e.currentTarget.style.background = "var(--primary)";
+                    e.currentTarget.style.color = "#111827";
+                    e.currentTarget.style.borderColor = "var(--primary)";
+                }}
+                onMouseLeave={(e) => {
+                    e.currentTarget.style.background = "rgba(255,255,255,0.1)";
+                    e.currentTarget.style.color = "#fff";
+                    e.currentTarget.style.borderColor = "rgba(255,255,255,0.2)";
+                }}
+            >
+                ↓ Download PDF
+            </button>
+            </div>
         </div>
       </section>
 
