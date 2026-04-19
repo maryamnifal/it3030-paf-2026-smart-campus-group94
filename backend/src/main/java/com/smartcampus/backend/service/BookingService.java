@@ -159,6 +159,21 @@ public class BookingService {
         return mapToResponse(bookingRepository.save(booking));
     }
 
+    // ✅ NEW: Mark a booking as CHECKED_IN (called from admin verify screen)
+    public BookingResponseDTO checkInBooking(String id) {
+        Booking booking = bookingRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Booking not found with id: " + id));
+ 
+        if (booking.getStatus() != BookingStatus.APPROVED) {
+            throw new ConflictException(
+                "Only APPROVED bookings can be checked in. Current status: " + booking.getStatus()
+            );
+        }
+ 
+        booking.setStatus(BookingStatus.CHECKED_IN);
+        return mapToResponse(bookingRepository.save(booking));
+    }
+
     // Delete a booking
     public void deleteBooking(String id) {
         Booking booking = bookingRepository.findById(id)
