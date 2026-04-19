@@ -1,31 +1,38 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
 
 export default function AuthCallback() {
   const navigate = useNavigate();
   const { login } = useAuth();
+  const handledRef = useRef(false);
 
   useEffect(() => {
-  const params = new URLSearchParams(window.location.search);
-  const token = params.get("token");
-  const role = params.get("role");
-  const name = params.get("name");
-  const userId = params.get("userId"); // ✅ NEW
+    if (handledRef.current) return;
+    handledRef.current = true;
 
-  if (token && role && userId) {
-    // ✅ pass userId into login
-    login(token, role, name, userId);
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get("token");
+    const role = params.get("role");
+    const name = params.get("name");
+    const userId = params.get("userId");
 
-    if (role === "ADMIN") {
-      navigate("/admin/dashboard", { replace: true });
+    console.log("AuthCallback loaded");
+    console.log("URL:", window.location.href);
+    console.log("DATA:", { token, role, name, userId });
+
+    if (token && role) {
+      login(token, role, name, userId);
+
+      if (role === "ADMIN") {
+        navigate("/admin/dashboard", { replace: true });
+      } else {
+        navigate("/user/dashboard", { replace: true });
+      }
     } else {
-      navigate("/user/dashboard", { replace: true });
+      navigate("/login", { replace: true });
     }
-  } else {
-    navigate("/", { replace: true });
-  }
-}, [navigate, login]);
+  }, [navigate, login]);
 
   return (
     <div

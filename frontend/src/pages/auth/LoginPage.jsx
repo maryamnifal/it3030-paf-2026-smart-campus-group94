@@ -9,7 +9,7 @@ function GoogleIcon() {
       />
       <path
         fill="#FF3D00"
-        d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.851 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.27 4 24 4 16.318 4 9.656 8.337 6.306 14.691z"
+        d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.851 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.27 4 24 4 16.318 4.337 9.656 8.337 6.306 14.691z"
       />
       <path
         fill="#4CAF50"
@@ -23,12 +23,12 @@ function GoogleIcon() {
   );
 }
 
-function FacebookIcon() {
+function GitHubIcon() {
   return (
     <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true">
       <path
-        fill="#1877F2"
-        d="M24 12.073C24 5.405 18.627 0 12 0S0 5.405 0 12.073c0 6.026 4.388 11.022 10.125 11.927v-8.437H7.078v-3.49h3.047V9.413c0-3.021 1.792-4.688 4.533-4.688 1.313 0 2.686.236 2.686.236v2.965H15.83c-1.491 0-1.956.931-1.956 1.887v2.26h3.328l-.532 3.49h-2.796V24C19.612 23.095 24 18.099 24 12.073z"
+        fill="#111827"
+        d="M12 .5C5.649.5.5 5.649.5 12a11.5 11.5 0 0 0 7.86 10.915c.575.106.785-.25.785-.556 0-.274-.01-1-.016-1.962-3.197.695-3.872-1.54-3.872-1.54-.523-1.328-1.277-1.682-1.277-1.682-1.044-.714.079-.7.079-.7 1.154.081 1.761 1.185 1.761 1.185 1.026 1.759 2.692 1.251 3.348.957.104-.743.402-1.251.731-1.539-2.552-.29-5.236-1.276-5.236-5.682 0-1.255.448-2.281 1.183-3.085-.119-.29-.513-1.458.112-3.04 0 0 .965-.309 3.162 1.178A10.97 10.97 0 0 1 12 6.04c.974.005 1.956.132 2.873.387 2.195-1.487 3.159-1.178 3.159-1.178.627 1.582.233 2.75.115 3.04.737.804 1.181 1.83 1.181 3.085 0 4.417-2.688 5.389-5.248 5.673.413.356.781 1.058.781 2.134 0 1.541-.014 2.783-.014 3.162 0 .309.207.668.79.555A11.503 11.503 0 0 0 23.5 12C23.5 5.649 18.351.5 12 .5z"
       />
     </svg>
   );
@@ -158,13 +158,13 @@ export default function LoginPage() {
           </a>
 
           <a
-            href="http://localhost:8080/oauth2/authorization/facebook"
+            href="http://localhost:8080/oauth2/authorization/github"
             style={{ textDecoration: "none" }}
           >
             <button
               style={socialButtonStyle}
               onMouseEnter={(e) => {
-                e.currentTarget.style.borderColor = "rgba(24,119,242,0.32)";
+                e.currentTarget.style.borderColor = "rgba(17,24,39,0.22)";
                 e.currentTarget.style.boxShadow =
                   "0 14px 28px rgba(15,23,42,0.06)";
                 e.currentTarget.style.transform = "translateY(-1px)";
@@ -176,8 +176,8 @@ export default function LoginPage() {
                 e.currentTarget.style.transform = "translateY(0)";
               }}
             >
-              <FacebookIcon />
-              Continue with Facebook
+              <GitHubIcon />
+              Continue with GitHub
             </button>
           </a>
         </div>
