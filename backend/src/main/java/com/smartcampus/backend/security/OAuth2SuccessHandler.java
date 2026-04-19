@@ -12,6 +12,8 @@ import org.springframework.security.web.authentication.AuthenticationSuccessHand
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDateTime;
 import java.util.Optional;
 
@@ -36,7 +38,17 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
         String name = oAuth2User.getAttribute("name");
         String picture = oAuth2User.getAttribute("picture");
 
-        // Find or create user
+        // fallback values (important for GitHub)
+        if (name == null || name.isBlank()) {
+            name = email;
+        }
+        if (picture == null) {
+            picture = "";
+        }
+
+        // ✅ FIX: detect provider dynamically
+        String provider = request.getRequestURI().contains("github") ? "github" : "google";
+
         Optional<User> existingUser = userRepository.findByEmail(email);
         User user;
 
@@ -45,13 +57,14 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
             user.setLastLoginAt(LocalDateTime.now());
             user.setName(name);
             user.setPicture(picture);
+            user.setProvider(provider);
         } else {
             user = User.builder()
                     .email(email)
                     .name(name)
                     .picture(picture)
-                    .role("USER")           // default role
-                    .provider("google")
+                    .role("USER") // default role
+                    .provider(provider) // ✅ FIXED
                     .createdAt(LocalDateTime.now())
                     .lastLoginAt(LocalDateTime.now())
                     .build();
@@ -62,13 +75,13 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
         // Generate JWT
         String token = jwtUtil.generateToken(email, user.getRole(), name);
 
-        // Redirect to frontend with token and role
+        // ✅ KEEP THIS (AuthCallback depends on it)
         response.sendRedirect(
-         frontendUrl
-             + "/auth/callback?token=" + token
-             + "&role=" + user.getRole()
-             + "&name=" + java.net.URLEncoder.encode(name, java.nio.charset.StandardCharsets.UTF_8)
-             + "&userId=" + user.getId()
+                frontendUrl
+                        + "/auth/callback?token=" + URLEncoder.encode(token, StandardCharsets.UTF_8)
+                        + "&role=" + URLEncoder.encode(user.getRole(), StandardCharsets.UTF_8)
+                        + "&name=" + URLEncoder.encode(name, StandardCharsets.UTF_8)
+                        + "&userId=" + URLEncoder.encode(user.getId(), StandardCharsets.UTF_8)
         );
     }
 }

@@ -87,6 +87,11 @@
     <artifactId>jjwt-jackson</artifactId>
     <version>0.11.5</version>
 </dependency>
+<<<<<<< HEAD
+=======
+
+<!-- Email sending -->
+>>>>>>> 38070bfeda9f49cbaf7bbb695c1abc5639134de7
 <dependency>
     <groupId>org.springframework.boot</groupId>
     <artifactId>spring-boot-starter-mail</artifactId>
