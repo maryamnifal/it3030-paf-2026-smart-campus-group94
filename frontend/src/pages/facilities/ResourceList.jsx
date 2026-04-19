@@ -88,11 +88,34 @@ export default function ResourceList() {
     setFilters({ type: "", location: "", capacity: "" });
   };
 
+  const shellStyle = {
+    minHeight: "100vh",
+    background:
+      "linear-gradient(180deg, #f8fafc 0%, #f8fafc 58%, #eef2f7 100%)",
+    paddingBottom: "90px",
+  };
+
+  const heroStyle = {
+    position: "relative",
+    overflow: "hidden",
+    background:
+      "linear-gradient(135deg, #0f172a 0%, #1e3a5f 45%, #4b6584 100%)",
+    padding: "42px 2rem 96px",
+  };
+
+  const containerStyle = {
+    maxWidth: "1200px",
+    margin: "0 auto",
+    padding: "0 2rem",
+  };
+
   const pageCardStyle = {
-    background: "#fff",
-    border: "1px solid rgba(15, 23, 42, 0.08)",
+    background: "rgba(255,255,255,0.92)",
+    backdropFilter: "blur(12px)",
+    WebkitBackdropFilter: "blur(12px)",
+    border: "1px solid rgba(15, 23, 42, 0.07)",
     borderRadius: "28px",
-    boxShadow: "0 10px 30px rgba(15, 23, 42, 0.05)",
+    boxShadow: "0 18px 45px rgba(15, 23, 42, 0.06)",
   };
 
   const inputStyle = {
@@ -101,116 +124,191 @@ export default function ResourceList() {
     borderRadius: "16px",
     border: "1px solid rgba(15, 23, 42, 0.08)",
     background: "#fff",
-    color: "var(--text-dark)",
+    color: "#0f172a",
     fontSize: "14px",
     outline: "none",
     boxSizing: "border-box",
+    transition: "all 0.22s ease",
   };
 
-  const sectionPillStyle = {
-    display: "inline-block",
-    background: "var(--primary-light)",
-    color: "var(--secondary)",
-    fontSize: "12px",
+  const labelStyle = {
+    display: "block",
+    fontSize: "13px",
     fontWeight: 700,
-    letterSpacing: "1.2px",
+    color: "#0f172a",
+    marginBottom: "8px",
+  };
+
+  const sectionPillDark = {
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "10px",
+    padding: "8px 16px",
+    borderRadius: "999px",
+    background: "rgba(255,255,255,0.10)",
+    color: "#fff",
+    fontSize: "12px",
+    fontWeight: 800,
+    letterSpacing: "0.7px",
+    marginBottom: "18px",
+    border: "1px solid rgba(255,255,255,0.12)",
+  };
+
+  const sectionPillLight = {
+    display: "inline-block",
+    background: "rgba(244,180,0,0.14)",
+    color: "#163a63",
+    fontSize: "12px",
+    fontWeight: 800,
+    letterSpacing: "1px",
     textTransform: "uppercase",
-    padding: "8px 18px",
+    padding: "8px 16px",
     borderRadius: "999px",
     marginBottom: "16px",
   };
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        background: "var(--bg-light)",
-        paddingBottom: "90px",
-      }}
-    >
-      <section
-        style={{
-          maxWidth: "1200px",
-          margin: "0 auto",
-          padding: "32px 2rem 0",
-        }}
-      >
+    <div style={shellStyle}>
+      <style>{`
+        @keyframes floatCard {
+          0% { transform: translateY(0px); }
+          50% { transform: translateY(-4px); }
+          100% { transform: translateY(0px); }
+        }
+
+        @keyframes glowPulse {
+          0% { opacity: 0.25; transform: scale(1); }
+          50% { opacity: 0.4; transform: scale(1.05); }
+          100% { opacity: 0.25; transform: scale(1); }
+        }
+      `}</style>
+
+      <section style={heroStyle}>
         <div
           style={{
-            ...pageCardStyle,
-            padding: "28px 30px",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "flex-start",
-            gap: "20px",
-            flexWrap: "wrap",
+            position: "absolute",
+            top: "-100px",
+            right: "-60px",
+            width: "320px",
+            height: "320px",
+            borderRadius: "50%",
+            background: "rgba(244,180,0,0.10)",
+            filter: "blur(70px)",
+            animation: "glowPulse 6s ease-in-out infinite",
           }}
-        >
-          <div>
-            <div style={sectionPillStyle}>Facilities & Assets Catalogue</div>
+        />
+        <div
+          style={{
+            position: "absolute",
+            bottom: "-120px",
+            left: "-60px",
+            width: "260px",
+            height: "260px",
+            borderRadius: "50%",
+            background: "rgba(255,255,255,0.08)",
+            filter: "blur(70px)",
+            animation: "glowPulse 7s ease-in-out infinite",
+          }}
+        />
 
-            <div
-              style={{
-                fontSize: "30px",
-                fontWeight: 800,
-                color: "var(--text-dark)",
-                letterSpacing: "-0.8px",
-                marginBottom: "10px",
-              }}
-            >
-              Resource Catalogue
+        <div style={containerStyle}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "flex-start",
+              gap: "20px",
+              flexWrap: "wrap",
+              position: "relative",
+              zIndex: 2,
+            }}
+          >
+            <div style={{ maxWidth: "760px" }}>
+              <div style={sectionPillDark}>
+                <span
+                  style={{
+                    width: "8px",
+                    height: "8px",
+                    borderRadius: "50%",
+                    background: "var(--primary)",
+                    display: "inline-block",
+                  }}
+                />
+                FACILITIES & ASSETS
+              </div>
+
+              <h1
+                style={{
+                  fontSize: "42px",
+                  lineHeight: 1.06,
+                  fontWeight: 900,
+                  color: "#fff",
+                  letterSpacing: "-1.2px",
+                  marginBottom: "14px",
+                }}
+              >
+                Resource Catalogue
+              </h1>
+
+              <p
+                style={{
+                  color: "rgba(255,255,255,0.82)",
+                  fontSize: "17px",
+                  lineHeight: 1.9,
+                  margin: 0,
+                  maxWidth: "720px",
+                }}
+              >
+                Browse labs, halls, meeting rooms, and equipment from one clean
+                premium catalogue with smart filters and quick actions.
+              </p>
             </div>
 
-            <div
-              style={{
-                fontSize: "15px",
-                color: "var(--text-light)",
-                lineHeight: 1.7,
-                maxWidth: "680px",
-              }}
-            >
-              Browse labs, halls, meeting rooms, and equipment. Use the filters
-              below to quickly find the right resource.
-            </div>
+            {isAdmin && (
+              <button
+                onClick={() => navigate("/facilities/new")}
+                style={{
+                  background: "var(--primary)",
+                  color: "#111827",
+                  border: "none",
+                  padding: "12px 18px",
+                  borderRadius: "14px",
+                  fontSize: "14px",
+                  fontWeight: 800,
+                  cursor: "pointer",
+                  boxShadow: "0 10px 24px rgba(244, 180, 0, 0.18)",
+                }}
+              >
+                + Add New Resource
+              </button>
+            )}
           </div>
-
-          {isAdmin && (
-            <button
-              onClick={() => navigate("/facilities/new")}
-              style={{
-                background: "var(--secondary)",
-                color: "#fff",
-                border: "none",
-                padding: "14px 22px",
-                borderRadius: "999px",
-                fontSize: "14px",
-                fontWeight: 700,
-                cursor: "pointer",
-                boxShadow: "0 10px 24px rgba(22, 58, 99, 0.18)",
-                whiteSpace: "nowrap",
-              }}
-            >
-              + Add New Resource
-            </button>
-          )}
         </div>
       </section>
 
       <section
         style={{
-          maxWidth: "1200px",
-          margin: "0 auto",
-          padding: "24px 2rem 0",
+          ...containerStyle,
+          marginTop: "-40px",
+          position: "relative",
+          zIndex: 3,
         }}
       >
-        <div style={{ ...pageCardStyle, padding: "28px", marginBottom: "24px" }}>
-          <div style={sectionPillStyle}>Search & Filter</div>
+        <div
+          style={{
+            ...pageCardStyle,
+            padding: "28px",
+            marginBottom: "24px",
+          }}
+        >
+          <div style={sectionPillLight}>Search & Filter</div>
+
           <div
             style={{
-              fontSize: "22px",
+              fontSize: "24px",
               fontWeight: 800,
-              color: "var(--text-dark)",
-              marginBottom: "18px",
+              color: "#0f172a",
+              marginBottom: "20px",
               letterSpacing: "-0.5px",
             }}
           >
@@ -221,49 +319,39 @@ export default function ResourceList() {
             style={{
               display: "grid",
               gridTemplateColumns: "1fr 1fr 1fr auto",
-              gap: "14px",
+              gap: "16px",
               alignItems: "end",
             }}
           >
             <div>
-              <label
-                style={{
-                  display: "block",
-                  fontSize: "13px",
-                  fontWeight: 700,
-                  color: "var(--text-dark)",
-                  marginBottom: "8px",
-                }}
-              >
-                Type
-              </label>
+              <label style={labelStyle}>Type</label>
               <select
                 value={filters.type}
                 onChange={(e) =>
                   setFilters((prev) => ({ ...prev, type: e.target.value }))
                 }
                 style={inputStyle}
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = "rgba(22,58,99,0.24)";
+                  e.currentTarget.style.boxShadow =
+                    "0 0 0 4px rgba(22,58,99,0.06)";
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = "rgba(15, 23, 42, 0.08)";
+                  e.currentTarget.style.boxShadow = "none";
+                }}
               >
                 <option value="">All Types</option>
                 <option value="LAB">Lab</option>
                 <option value="LECTURE_HALL">Lecture Hall</option>
                 <option value="MEETING_ROOM">Meeting Room</option>
                 <option value="EQUIPMENT">Equipment</option>
+                <option value="ROOM">Room</option>
               </select>
             </div>
 
             <div>
-              <label
-                style={{
-                  display: "block",
-                  fontSize: "13px",
-                  fontWeight: 700,
-                  color: "var(--text-dark)",
-                  marginBottom: "8px",
-                }}
-              >
-                Location
-              </label>
+              <label style={labelStyle}>Location</label>
               <input
                 type="text"
                 placeholder="Filter by location"
@@ -274,22 +362,21 @@ export default function ResourceList() {
                     location: e.target.value,
                   }))
                 }
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = "rgba(22,58,99,0.24)";
+                  e.currentTarget.style.boxShadow =
+                    "0 0 0 4px rgba(22,58,99,0.06)";
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = "rgba(15, 23, 42, 0.08)";
+                  e.currentTarget.style.boxShadow = "none";
+                }}
                 style={inputStyle}
               />
             </div>
 
             <div>
-              <label
-                style={{
-                  display: "block",
-                  fontSize: "13px",
-                  fontWeight: 700,
-                  color: "var(--text-dark)",
-                  marginBottom: "8px",
-                }}
-              >
-                Min Capacity
-              </label>
+              <label style={labelStyle}>Min Capacity</label>
               <input
                 type="number"
                 min="0"
@@ -297,7 +384,6 @@ export default function ResourceList() {
                 value={filters.capacity}
                 onChange={(e) => {
                   const value = e.target.value;
-
                   if (value === "" || Number(value) >= 0) {
                     setFilters((prev) => ({
                       ...prev,
@@ -306,6 +392,15 @@ export default function ResourceList() {
                   }
                 }}
                 style={inputStyle}
+                onFocus={(e) => {
+                  e.currentTarget.style.borderColor = "rgba(22,58,99,0.24)";
+                  e.currentTarget.style.boxShadow =
+                    "0 0 0 4px rgba(22,58,99,0.06)";
+                }}
+                onBlur={(e) => {
+                  e.currentTarget.style.borderColor = "rgba(15, 23, 42, 0.08)";
+                  e.currentTarget.style.boxShadow = "none";
+                }}
               />
             </div>
 
@@ -313,15 +408,24 @@ export default function ResourceList() {
               onClick={handleClear}
               style={{
                 background: "#fff",
-                color: "var(--text-dark)",
+                color: "#0f172a",
                 border: "1px solid rgba(15, 23, 42, 0.08)",
                 padding: "14px 22px",
-                borderRadius: "999px",
+                borderRadius: "14px",
                 fontSize: "14px",
-                fontWeight: 600,
+                fontWeight: 700,
                 cursor: "pointer",
-                transition: "all 0.25s ease",
                 height: "50px",
+                transition: "all 0.22s ease",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.borderColor = "rgba(15,23,42,0.16)";
+                e.currentTarget.style.boxShadow =
+                  "0 8px 18px rgba(15,23,42,0.05)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.borderColor = "rgba(15, 23, 42, 0.08)";
+                e.currentTarget.style.boxShadow = "none";
               }}
             >
               Clear
@@ -342,9 +446,9 @@ export default function ResourceList() {
           <div>
             <div
               style={{
-                fontSize: "24px",
+                fontSize: "26px",
                 fontWeight: 800,
-                color: "var(--text-dark)",
+                color: "#0f172a",
                 letterSpacing: "-0.5px",
               }}
             >
@@ -353,7 +457,7 @@ export default function ResourceList() {
             <div
               style={{
                 fontSize: "14px",
-                color: "var(--text-light)",
+                color: "#64748b",
                 marginTop: "6px",
               }}
             >
@@ -370,7 +474,7 @@ export default function ResourceList() {
               ...pageCardStyle,
               padding: "60px 24px",
               textAlign: "center",
-              color: "var(--text-light)",
+              color: "#64748b",
               fontSize: "16px",
             }}
           >
@@ -389,7 +493,7 @@ export default function ResourceList() {
               style={{
                 fontSize: "22px",
                 fontWeight: 800,
-                color: "var(--text-dark)",
+                color: "#0f172a",
                 marginBottom: "10px",
               }}
             >
@@ -397,7 +501,7 @@ export default function ResourceList() {
             </div>
             <div
               style={{
-                color: "var(--text-light)",
+                color: "#64748b",
                 fontSize: "14px",
                 lineHeight: 1.7,
               }}
@@ -409,11 +513,11 @@ export default function ResourceList() {
           <div
             style={{
               display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(290px, 1fr))",
+              gridTemplateColumns: "repeat(auto-fit, minmax(300px, 1fr))",
               gap: "24px",
             }}
           >
-            {resources.map((r) => {
+            {resources.map((r, index) => {
               const image =
                 r.imageUrl ||
                 (r.images && r.images.length > 0 ? r.images[0] : null);
@@ -426,28 +530,32 @@ export default function ResourceList() {
                   style={{
                     ...pageCardStyle,
                     overflow: "hidden",
-                    transition: "all 0.25s ease",
+                    transition: "all 0.28s ease",
+                    animation: "floatCard 5.2s ease-in-out infinite",
+                    animationDelay: `${index * 0.12}s`,
                   }}
                   onMouseEnter={(e) => {
-                    e.currentTarget.style.transform = "translateY(-6px)";
+                    e.currentTarget.style.transform = "translateY(-8px)";
                     e.currentTarget.style.boxShadow =
-                      "0 18px 40px rgba(15, 23, 42, 0.08)";
-                    e.currentTarget.style.borderColor = "var(--primary)";
+                      "0 22px 48px rgba(15, 23, 42, 0.10)";
+                    e.currentTarget.style.borderColor = "rgba(244,180,0,0.45)";
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.transform = "translateY(0)";
                     e.currentTarget.style.boxShadow =
-                      "0 10px 30px rgba(15, 23, 42, 0.05)";
+                      "0 18px 45px rgba(15, 23, 42, 0.06)";
                     e.currentTarget.style.borderColor =
-                      "rgba(15, 23, 42, 0.08)";
+                      "rgba(15, 23, 42, 0.07)";
                   }}
                 >
                   <div
                     style={{
                       width: "100%",
-                      height: "200px",
-                      background: "#f1f5f9",
+                      height: "220px",
+                      background:
+                        "linear-gradient(180deg, rgba(241,245,249,1) 0%, rgba(226,232,240,1) 100%)",
                       overflow: "hidden",
+                      position: "relative",
                     }}
                   >
                     {image ? (
@@ -459,6 +567,13 @@ export default function ResourceList() {
                           height: "100%",
                           objectFit: "cover",
                           display: "block",
+                          transition: "transform 0.35s ease",
+                        }}
+                        onMouseEnter={(e) => {
+                          e.currentTarget.style.transform = "scale(1.04)";
+                        }}
+                        onMouseLeave={(e) => {
+                          e.currentTarget.style.transform = "scale(1)";
                         }}
                       />
                     ) : (
@@ -469,13 +584,38 @@ export default function ResourceList() {
                           display: "flex",
                           alignItems: "center",
                           justifyContent: "center",
-                          color: "var(--text-light)",
-                          fontSize: "42px",
+                          color: "#94a3b8",
+                          fontSize: "48px",
                         }}
                       >
                         🏢
                       </div>
                     )}
+
+                    <div
+                      style={{
+                        position: "absolute",
+                        top: "14px",
+                        right: "14px",
+                      }}
+                    >
+                      <span
+                        style={{
+                          background: isActive
+                            ? "rgba(220,252,231,0.96)"
+                            : "rgba(254,226,226,0.96)",
+                          color: isActive ? "#166534" : "#991b1b",
+                          borderRadius: "999px",
+                          padding: "8px 12px",
+                          fontSize: "11px",
+                          fontWeight: 800,
+                          whiteSpace: "nowrap",
+                          backdropFilter: "blur(8px)",
+                        }}
+                      >
+                        {r.status}
+                      </span>
+                    </div>
                   </div>
 
                   <div style={{ padding: "22px" }}>
@@ -491,9 +631,9 @@ export default function ResourceList() {
                       <div>
                         <div
                           style={{
-                            fontSize: "21px",
+                            fontSize: "22px",
                             fontWeight: 800,
-                            color: "var(--text-dark)",
+                            color: "#0f172a",
                             letterSpacing: "-0.4px",
                             marginBottom: "6px",
                           }}
@@ -503,27 +643,15 @@ export default function ResourceList() {
                         <div
                           style={{
                             fontSize: "13px",
-                            color: "var(--text-light)",
-                            fontWeight: 600,
+                            color: "#64748b",
+                            fontWeight: 700,
+                            textTransform: "uppercase",
+                            letterSpacing: "0.5px",
                           }}
                         >
                           {r.type?.replaceAll("_", " ") || "-"}
                         </div>
                       </div>
-
-                      <span
-                        style={{
-                          background: isActive ? "#dcfce7" : "#fee2e2",
-                          color: isActive ? "#166534" : "#991b1b",
-                          borderRadius: "999px",
-                          padding: "8px 12px",
-                          fontSize: "11px",
-                          fontWeight: 700,
-                          whiteSpace: "nowrap",
-                        }}
-                      >
-                        {r.status}
-                      </span>
                     </div>
 
                     <div
@@ -534,14 +662,21 @@ export default function ResourceList() {
                         marginBottom: "18px",
                       }}
                     >
-                      <div>
+                      <div
+                        style={{
+                          background: "#f8fafc",
+                          border: "1px solid rgba(15,23,42,0.06)",
+                          borderRadius: "16px",
+                          padding: "12px 14px",
+                        }}
+                      >
                         <div
                           style={{
-                            fontSize: "12px",
-                            fontWeight: 700,
-                            color: "var(--text-muted)",
+                            fontSize: "11px",
+                            fontWeight: 800,
+                            color: "#94a3b8",
                             textTransform: "uppercase",
-                            letterSpacing: "0.8px",
+                            letterSpacing: "0.9px",
                             marginBottom: "5px",
                           }}
                         >
@@ -550,22 +685,29 @@ export default function ResourceList() {
                         <div
                           style={{
                             fontSize: "14px",
-                            fontWeight: 600,
-                            color: "var(--text-dark)",
+                            fontWeight: 700,
+                            color: "#0f172a",
                           }}
                         >
                           {r.capacity || "-"}
                         </div>
                       </div>
 
-                      <div>
+                      <div
+                        style={{
+                          background: "#f8fafc",
+                          border: "1px solid rgba(15,23,42,0.06)",
+                          borderRadius: "16px",
+                          padding: "12px 14px",
+                        }}
+                      >
                         <div
                           style={{
-                            fontSize: "12px",
-                            fontWeight: 700,
-                            color: "var(--text-muted)",
+                            fontSize: "11px",
+                            fontWeight: 800,
+                            color: "#94a3b8",
                             textTransform: "uppercase",
-                            letterSpacing: "0.8px",
+                            letterSpacing: "0.9px",
                             marginBottom: "5px",
                           }}
                         >
@@ -574,8 +716,8 @@ export default function ResourceList() {
                         <div
                           style={{
                             fontSize: "14px",
-                            fontWeight: 600,
-                            color: "var(--text-dark)",
+                            fontWeight: 700,
+                            color: "#0f172a",
                           }}
                         >
                           {r.location || "-"}
@@ -597,10 +739,11 @@ export default function ResourceList() {
                           color: "#111827",
                           border: "none",
                           padding: "11px 16px",
-                          borderRadius: "999px",
+                          borderRadius: "14px",
                           fontSize: "13px",
-                          fontWeight: 700,
+                          fontWeight: 800,
                           cursor: "pointer",
+                          boxShadow: "0 10px 24px rgba(244, 180, 0, 0.16)",
                         }}
                       >
                         View
@@ -612,12 +755,12 @@ export default function ResourceList() {
                             onClick={() => navigate(`/facilities/edit/${r.id}`)}
                             style={{
                               background: "#fff",
-                              color: "var(--text-dark)",
+                              color: "#0f172a",
                               border: "1px solid rgba(15, 23, 42, 0.08)",
                               padding: "11px 16px",
-                              borderRadius: "999px",
+                              borderRadius: "14px",
                               fontSize: "13px",
-                              fontWeight: 600,
+                              fontWeight: 700,
                               cursor: "pointer",
                             }}
                           >
@@ -635,9 +778,9 @@ export default function ResourceList() {
                                   : "rgba(5, 150, 105, 0.18)"
                               }`,
                               padding: "11px 16px",
-                              borderRadius: "999px",
+                              borderRadius: "14px",
                               fontSize: "13px",
-                              fontWeight: 600,
+                              fontWeight: 700,
                               cursor: "pointer",
                             }}
                           >
@@ -651,9 +794,9 @@ export default function ResourceList() {
                               color: "#dc2626",
                               border: "1px solid rgba(220, 38, 38, 0.15)",
                               padding: "11px 16px",
-                              borderRadius: "999px",
+                              borderRadius: "14px",
                               fontSize: "13px",
-                              fontWeight: 600,
+                              fontWeight: 700,
                               cursor: "pointer",
                             }}
                           >
