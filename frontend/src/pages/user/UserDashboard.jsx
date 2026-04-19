@@ -2,7 +2,8 @@ import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getMyBookings } from "../../api/bookingApi";
 import { getMyTickets } from "../../api/ticketApi";
-import { getAllResources } from "../../api/resourceApi"; // ✅ NEW
+import { getAllResources } from "../../api/resourceApi";
+import { generateUserReportPdf } from "../../utils/userReportPdf";
 
 export default function UserDashboard() {
   const navigate = useNavigate();
@@ -11,7 +12,7 @@ export default function UserDashboard() {
 
   const [bookings, setBookings] = useState([]);
   const [tickets, setTickets] = useState([]);
-  const [resources, setResources] = useState([]); // ✅ NEW
+  const [resources, setResources] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -19,20 +20,20 @@ export default function UserDashboard() {
       try {
         setLoading(true);
 
-        const [bookingsRes, ticketsRes, resourcesRes] = await Promise.all([ // ✅ CHANGED
+        const [bookingsRes, ticketsRes, resourcesRes] = await Promise.all([
           userId ? getMyBookings(userId) : Promise.resolve({ data: [] }),
           getMyTickets(),
-          getAllResources(), // ✅ NEW
+          getAllResources(),
         ]);
 
         setBookings(Array.isArray(bookingsRes.data) ? bookingsRes.data : []);
         setTickets(Array.isArray(ticketsRes.data) ? ticketsRes.data : []);
-        setResources(Array.isArray(resourcesRes.data) ? resourcesRes.data : []); // ✅ NEW
+        setResources(Array.isArray(resourcesRes.data) ? resourcesRes.data : []);
       } catch (error) {
         console.error("Failed to load user dashboard data:", error);
         setBookings([]);
         setTickets([]);
-        setResources([]); // ✅ NEW
+        setResources([]);
       } finally {
         setLoading(false);
       }
@@ -41,10 +42,11 @@ export default function UserDashboard() {
     loadDashboardData();
   }, [userId]);
 
-  // ✅ NEW: Build a quick lookup map { resourceId -> resource object }
   const resourceMap = useMemo(() => {
     const map = {};
-    resources.forEach((r) => { map[r.id] = r; });
+    resources.forEach((r) => {
+      map[r.id] = r;
+    });
     return map;
   }, [resources]);
 
@@ -94,23 +96,36 @@ export default function UserDashboard() {
   const shellStyle = {
     minHeight: "100vh",
     background:
-      "radial-gradient(circle at top, rgba(244,180,0,0.05), transparent 20%), linear-gradient(180deg, #f8fafc 0%, #f8fafc 55%, #eef2f7 100%)",
+      "linear-gradient(180deg, #f8fafc 0%, #f8fafc 58%, #eef2f7 100%)",
     paddingBottom: "90px",
+  };
+
+  const heroStyle = {
+    position: "relative",
+    overflow: "hidden",
+    background:
+      "linear-gradient(135deg, #0f172a 0%, #1e3a5f 45%, #4b6584 100%)",
+    padding: "42px 2rem 96px",
+    boxShadow: "inset 0 -1px 0 rgba(255,255,255,0.08)",
   };
 
   const containerStyle = {
     maxWidth: "1200px",
     margin: "0 auto",
-    padding: "28px 2rem 0",
   };
 
   const cardStyle = {
-    background: "rgba(255,255,255,0.9)",
+    background: "rgba(255,255,255,0.92)",
     backdropFilter: "blur(12px)",
     WebkitBackdropFilter: "blur(12px)",
     border: "1px solid rgba(15, 23, 42, 0.07)",
     borderRadius: "28px",
     boxShadow: "0 18px 45px rgba(15, 23, 42, 0.06)",
+  };
+
+  const floatingCardStyle = {
+    ...cardStyle,
+    animation: "floatCard 4.8s ease-in-out infinite",
   };
 
   const sectionTitleStyle = {
@@ -131,6 +146,7 @@ export default function UserDashboard() {
     fontWeight: 700,
     cursor: "pointer",
     textAlign: "left",
+    transition: "all 0.22s ease",
   };
 
   const bookingStatusBadgeStyle = (status) => {
@@ -206,7 +222,7 @@ export default function UserDashboard() {
   if (loading) {
     return (
       <div style={{ ...shellStyle, paddingTop: "120px" }}>
-        <div style={containerStyle}>
+        <div style={{ ...containerStyle, padding: "0 2rem" }}>
           <div style={{ ...cardStyle, padding: "50px", textAlign: "center" }}>
             Loading your dashboard...
           </div>
@@ -217,108 +233,138 @@ export default function UserDashboard() {
 
   return (
     <div style={shellStyle}>
-      <section style={containerStyle}>
+      <style>{`
+        @keyframes floatCard {
+          0% { transform: translateY(0px); }
+          50% { transform: translateY(-4px); }
+          100% { transform: translateY(0px); }
+        }
+
+        @keyframes glowPulse {
+          0% { opacity: 0.28; transform: scale(1); }
+          50% { opacity: 0.42; transform: scale(1.05); }
+          100% { opacity: 0.28; transform: scale(1); }
+        }
+      `}</style>
+
+      <section style={heroStyle}>
         <div
           style={{
-            ...cardStyle,
-            padding: "30px 34px",
-            display: "flex",
-            justifyContent: "space-between",
-            alignItems: "flex-start",
-            gap: "20px",
-            flexWrap: "wrap",
-            marginBottom: "28px",
+            position: "absolute",
+            top: "-90px",
+            right: "-60px",
+            width: "320px",
+            height: "320px",
+            borderRadius: "50%",
+            background: "rgba(244,180,0,0.10)",
+            filter: "blur(70px)",
+            animation: "glowPulse 6s ease-in-out infinite",
           }}
-        >
-          <div style={{ maxWidth: "760px" }}>
-            <div
-              style={{
-                display: "inline-flex",
-                alignItems: "center",
-                gap: "10px",
-                padding: "8px 16px",
-                borderRadius: "999px",
-                background: "rgba(244,180,0,0.12)",
-                color: "#0f172a",
-                fontSize: "12px",
-                fontWeight: 800,
-                letterSpacing: "0.7px",
-                marginBottom: "18px",
-              }}
-            >
-              <span
-                style={{
-                  width: "8px",
-                  height: "8px",
-                  borderRadius: "50%",
-                  background: "var(--primary)",
-                  display: "inline-block",
-                }}
-              />
-              USER DASHBOARD
-            </div>
+        />
+        <div
+          style={{
+            position: "absolute",
+            bottom: "-120px",
+            left: "-70px",
+            width: "280px",
+            height: "280px",
+            borderRadius: "50%",
+            background: "rgba(255,255,255,0.08)",
+            filter: "blur(70px)",
+            animation: "glowPulse 7s ease-in-out infinite",
+          }}
+        />
 
-            <h1
-              style={{
-                fontSize: "34px",
-                lineHeight: 1.08,
-                fontWeight: 900,
-                color: "#0f172a",
-                letterSpacing: "-1px",
-                marginBottom: "14px",
-              }}
-            >
-              Welcome back, {name}
-            </h1>
-
-            <p
-              style={{
-                color: "#64748b",
-                fontSize: "16px",
-                lineHeight: 1.85,
-                margin: 0,
-                maxWidth: "720px",
-              }}
-            >
-              Track your bookings, follow incident updates, and manage your
-              campus activity from one clean workspace.
-            </p>
-          </div>
-
+        <div style={containerStyle}>
           <div
             style={{
-              background: "rgba(22,58,99,0.08)",
-              color: "#163a63",
-              border: "1px solid rgba(22,58,99,0.10)",
-              borderRadius: "16px",
-              padding: "14px 16px",
-              minWidth: "180px",
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "flex-start",
+              gap: "20px",
+              flexWrap: "wrap",
+              position: "relative",
+              zIndex: 2,
             }}
           >
-            <div
-              style={{
-                fontSize: "12px",
-                fontWeight: 800,
-                textTransform: "uppercase",
-                letterSpacing: "0.8px",
-                marginBottom: "6px",
-              }}
-            >
-              Account Role
+            <div style={{ maxWidth: "760px" }}>
+              <div
+                style={{
+                  display: "inline-flex",
+                  alignItems: "center",
+                  gap: "10px",
+                  padding: "8px 16px",
+                  borderRadius: "999px",
+                  background: "rgba(255,255,255,0.10)",
+                  color: "#ffffff",
+                  fontSize: "12px",
+                  fontWeight: 800,
+                  letterSpacing: "0.7px",
+                  marginBottom: "18px",
+                  border: "1px solid rgba(255,255,255,0.12)",
+                }}
+              >
+                <span
+                  style={{
+                    width: "8px",
+                    height: "8px",
+                    borderRadius: "50%",
+                    background: "var(--primary)",
+                    display: "inline-block",
+                  }}
+                />
+                USER DASHBOARD
+              </div>
+
+              <h1
+                style={{
+                  fontSize: "42px",
+                  lineHeight: 1.06,
+                  fontWeight: 900,
+                  color: "#ffffff",
+                  letterSpacing: "-1.2px",
+                  marginBottom: "14px",
+                }}
+              >
+                Welcome back, {name}
+              </h1>
+
+              <p
+                style={{
+                  color: "rgba(255,255,255,0.82)",
+                  fontSize: "17px",
+                  lineHeight: 1.9,
+                  margin: 0,
+                  maxWidth: "720px",
+                }}
+              >
+                Track your bookings, follow incident updates, and manage your
+                campus activity from one clean workspace.
+              </p>
             </div>
-            <div
-              style={{
-                fontSize: "18px",
-                fontWeight: 800,
-              }}
+
+           
+              <button
+              onClick={() => generateUserReportPdf(analytics)}
+              style={quickButtonStyle}
             >
-              User
-            </div>
+             Download Report
+            </button>
+        
+            
           </div>
         </div>
       </section>
 
-      <section style={{ ...containerStyle, paddingTop: 0 }}>
+      <section
+        style={{
+          ...containerStyle,
+          padding: "0 2rem",
+          marginTop: "-42px",
+          position: "relative",
+          zIndex: 3,
+        }}
+      >
         <div
           style={{
             display: "grid",
@@ -327,14 +373,15 @@ export default function UserDashboard() {
             marginBottom: "28px",
           }}
         >
-          {summaryCards.map((card) => (
+          {summaryCards.map((card, index) => (
             <div
               key={card.label}
               style={{
-                ...cardStyle,
+                ...floatingCardStyle,
                 padding: "24px",
                 position: "relative",
                 overflow: "hidden",
+                animationDelay: `${index * 0.2}s`,
               }}
             >
               <div
@@ -405,9 +452,9 @@ export default function UserDashboard() {
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
                 {analytics.recentBookings.map((booking) => {
-                  // ✅ FIXED: Look up resource name from resourceMap
                   const resource = resourceMap[booking.resourceId];
-                  const displayName = resource?.name || booking.resourceName || "Unknown Resource";
+                  const displayName =
+                    resource?.name || booking.resourceName || "Unknown Resource";
 
                   return (
                     <div
@@ -432,10 +479,16 @@ export default function UserDashboard() {
                             marginBottom: "6px",
                           }}
                         >
-                          {displayName} {/* ✅ Now shows "Lecture Hall 01" instead of the ID */}
+                          {displayName}
                         </div>
                         {resource?.location && (
-                          <div style={{ fontSize: "12px", color: "#94a3b8", marginBottom: "4px" }}>
+                          <div
+                            style={{
+                              fontSize: "12px",
+                              color: "#94a3b8",
+                              marginBottom: "4px",
+                            }}
+                          >
                             {resource.location}
                           </div>
                         )}
@@ -550,6 +603,12 @@ export default function UserDashboard() {
                   border: "none",
                   boxShadow: "0 10px 24px rgba(244, 180, 0, 0.18)",
                 }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.transform = "translateY(-1px)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.transform = "translateY(0)";
+                }}
               >
                 Book a Resource
               </button>
@@ -557,6 +616,15 @@ export default function UserDashboard() {
               <button
                 onClick={() => navigate("/facilities")}
                 style={quickButtonStyle}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = "rgba(15,23,42,0.14)";
+                  e.currentTarget.style.boxShadow =
+                    "0 8px 18px rgba(15,23,42,0.05)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = "rgba(15,23,42,0.08)";
+                  e.currentTarget.style.boxShadow = "none";
+                }}
               >
                 Browse Facilities
               </button>
@@ -564,6 +632,15 @@ export default function UserDashboard() {
               <button
                 onClick={() => navigate("/incidents")}
                 style={quickButtonStyle}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = "rgba(15,23,42,0.14)";
+                  e.currentTarget.style.boxShadow =
+                    "0 8px 18px rgba(15,23,42,0.05)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = "rgba(15,23,42,0.08)";
+                  e.currentTarget.style.boxShadow = "none";
+                }}
               >
                 View or Report Incidents
               </button>
@@ -571,6 +648,15 @@ export default function UserDashboard() {
               <button
                 onClick={() => navigate("/notifications")}
                 style={quickButtonStyle}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.borderColor = "rgba(15,23,42,0.14)";
+                  e.currentTarget.style.boxShadow =
+                    "0 8px 18px rgba(15,23,42,0.05)";
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.borderColor = "rgba(15,23,42,0.08)";
+                  e.currentTarget.style.boxShadow = "none";
+                }}
               >
                 Check Notifications
               </button>
