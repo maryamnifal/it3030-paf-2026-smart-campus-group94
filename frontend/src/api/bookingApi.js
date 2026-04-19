@@ -40,3 +40,6 @@ export const rejectBooking = (id, rejectionReason) =>
 export const cancelBooking = (id) => api.put(`/bookings/${id}/cancel`);
 
 export const deleteBooking = (id) => api.delete(`/bookings/${id}`);
+
+// ✅ NEW: Mark booking as CHECKED_IN from admin verify screen
+export const checkInBooking  = (id) => api.put(`/bookings/${id}/checkin`);

@@ -13,6 +13,7 @@ import UserDashboard from "./pages/user/UserDashboard";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import BookingsPage from "./pages/Bookings/BookingsPage";
 import BookingRequests from "./pages/admin/BookingRequests";
+import CheckInVerify from "./pages/admin/CheckInVerify"; // ✅ NEW
 import TicketListPage from "./pages/incidents/TicketListPage";
 import TicketDetailPage from "./pages/incidents/TicketDetailPage";
 import CreateTicketPage from "./pages/incidents/CreateTicketPage";
@@ -82,6 +83,16 @@ function AppLayout() {
             element={
               <ProtectedRoute allowedRole="ADMIN">
                 <BookingRequests />
+              </ProtectedRoute>
+            }
+          />
+
+          
+          <Route
+            path="/admin/checkin"
+            element={
+              <ProtectedRoute allowedRole="ADMIN">
+                <CheckInVerify />
               </ProtectedRoute>
             }
           />
