@@ -1,20 +1,12 @@
-import { createContext, useContext, useState, useEffect } from "react";
+import { createContext, useContext, useState } from "react";
 
 const AuthContext = createContext();
 
 export function AuthProvider({ children }) {
-  const [token, setToken] = useState(null);
-  const [role, setRole] = useState(null);
-  const [name, setName] = useState(null);
-  const [userId, setUserId] = useState(null);
-
-  useEffect(() => {
-    // Load from localStorage on refresh
-    setToken(localStorage.getItem("token"));
-    setRole(localStorage.getItem("role"));
-    setName(localStorage.getItem("name"));
-    setUserId(localStorage.getItem("userId"));
-  }, []);
+  const [token, setToken] = useState(() => localStorage.getItem("token"));
+  const [role, setRole] = useState(() => localStorage.getItem("role"));
+  const [name, setName] = useState(() => localStorage.getItem("name"));
+  const [userId, setUserId] = useState(() => localStorage.getItem("userId"));
 
   const login = (token, role, name, userId) => {
     localStorage.setItem("token", token);
@@ -29,7 +21,11 @@ export function AuthProvider({ children }) {
   };
 
   const logout = () => {
-    localStorage.clear();
+    localStorage.removeItem("token");
+    localStorage.removeItem("role");
+    localStorage.removeItem("name");
+    localStorage.removeItem("userId");
+
     setToken(null);
     setRole(null);
     setName(null);
@@ -43,7 +39,6 @@ export function AuthProvider({ children }) {
   );
 }
 
-// Custom hook
 export function useAuth() {
   return useContext(AuthContext);
 }
