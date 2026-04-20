@@ -86,6 +86,12 @@ public class BookingController {
         return ResponseEntity.ok(bookingService.cancelBooking(id));
     }
 
+    // ✅ NEW: Mark booking as CHECKED_IN (admin only — called from /admin/checkin page)
+    @PutMapping("/{id}/checkin")
+    public ResponseEntity<BookingResponseDTO> checkInBooking(@PathVariable String id) {
+        return ResponseEntity.ok(bookingService.checkInBooking(id));
+    }
+
     // 8. Delete a booking
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteBooking(
