@@ -13,10 +13,11 @@ import UserDashboard from "./pages/user/UserDashboard";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import BookingsPage from "./pages/Bookings/BookingsPage";
 import BookingRequests from "./pages/admin/BookingRequests";
-import CheckInVerify from "./pages/admin/CheckInVerify"; // ✅ NEW
+import CheckInVerify from "./pages/admin/CheckInVerify";
 import TicketListPage from "./pages/incidents/TicketListPage";
 import TicketDetailPage from "./pages/incidents/TicketDetailPage";
 import CreateTicketPage from "./pages/incidents/CreateTicketPage";
+import NotificationPreferences from "./pages/notifications/NotificationPreferences";
 
 function AppLayout() {
   return (
@@ -25,10 +26,12 @@ function AppLayout() {
 
       <main style={{ flex: 1 }}>
         <Routes>
+          {/* PUBLIC ROUTES */}
           <Route path="/" element={<Home />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
           <Route path="/login" element={<LoginPage />} />
 
+          {/* ADMIN ROUTES */}
           <Route
             path="/admin/dashboard"
             element={
@@ -37,47 +40,6 @@ function AppLayout() {
               </ProtectedRoute>
             }
           />
-
-          <Route
-            path="/user/dashboard"
-            element={
-              <ProtectedRoute allowedRole="USER">
-                <UserDashboard />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route path="/facilities" element={<ResourceList />} />
-
-          <Route
-            path="/facilities/new"
-            element={
-              <ProtectedRoute allowedRole="ADMIN">
-                <ResourceForm />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/facilities/edit/:id"
-            element={
-              <ProtectedRoute allowedRole="ADMIN">
-                <ResourceForm />
-              </ProtectedRoute>
-            }
-          />
-
-          <Route path="/facilities/:id" element={<ResourceDetail />} />
-
-          <Route
-            path="/bookings"
-            element={
-              <ProtectedRoute allowedRole="USER">
-                <BookingsPage />
-              </ProtectedRoute>
-            }
-          />
-
           <Route
             path="/admin/bookings"
             element={
@@ -86,8 +48,6 @@ function AppLayout() {
               </ProtectedRoute>
             }
           />
-
-          
           <Route
             path="/admin/checkin"
             element={
@@ -97,6 +57,55 @@ function AppLayout() {
             }
           />
 
+          {/* USER ROUTES */}
+          <Route
+            path="/user/dashboard"
+            element={
+              <ProtectedRoute allowedRole="USER">
+                <UserDashboard />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/bookings"
+            element={
+              <ProtectedRoute allowedRole="USER">
+                <BookingsPage />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* ✅ NOTIFICATION PREFERENCES - USER only */}
+          <Route
+            path="/preferences"
+            element={
+              <ProtectedRoute allowedRole="USER">
+                <NotificationPreferences />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* FACILITIES ROUTES */}
+          <Route path="/facilities" element={<ResourceList />} />
+          <Route
+            path="/facilities/new"
+            element={
+              <ProtectedRoute allowedRole="ADMIN">
+                <ResourceForm />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/facilities/edit/:id"
+            element={
+              <ProtectedRoute allowedRole="ADMIN">
+                <ResourceForm />
+              </ProtectedRoute>
+            }
+          />
+          <Route path="/facilities/:id" element={<ResourceDetail />} />
+
+          {/* INCIDENTS ROUTES */}
           <Route
             path="/incidents"
             element={
@@ -105,7 +114,6 @@ function AppLayout() {
               </ProtectedRoute>
             }
           />
-
           <Route
             path="/incidents/create"
             element={
@@ -114,7 +122,6 @@ function AppLayout() {
               </ProtectedRoute>
             }
           />
-
           <Route
             path="/incidents/:id"
             element={
@@ -124,7 +131,8 @@ function AppLayout() {
             }
           />
 
-         <Route
+          {/* NOTIFICATIONS ROUTE */}
+          <Route
             path="/notifications"
             element={
               <ProtectedRoute>
