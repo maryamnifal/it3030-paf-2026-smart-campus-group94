@@ -10,15 +10,35 @@ import {
   deleteNotification,
 } from "../../api/notificationApi";
 
+// ─── TIMESTAMP HELPER ────────────────────────────────────────────────────────
+function timeAgo(dateStr) {
+  if (!dateStr) return "";
+  const now = new Date();
+  const date = new Date(dateStr);
+  const seconds = Math.floor((now - date) / 1000);
+
+  if (seconds < 60) return "Just now";
+  if (seconds < 3600) return `${Math.floor(seconds / 60)} min ago`;
+  if (seconds < 86400) return `${Math.floor(seconds / 3600)} hr ago`;
+  if (seconds < 604800) return `${Math.floor(seconds / 86400)} days ago`;
+  return date.toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" });
+}
+
 function Notifications() {
   const { userId, role } = useAuth();
   const isAdmin = role === "ADMIN";
 
   const [notifications, setNotifications] = useState([]);
+  const [filtered, setFiltered] = useState([]);
   const [loading, setLoading] = useState(true);
   const [creating, setCreating] = useState(false);
   const [showForm, setShowForm] = useState(false);
   const [editingNotification, setEditingNotification] = useState(null);
+
+  // ─── FILTER STATE ─────────────────────────────────────────────────────────
+  const [activeFilter, setActiveFilter] = useState("ALL");
+  const [searchQuery, setSearchQuery] = useState("");
+
   const [formData, setFormData] = useState({
     userId: "",
     title: "",
@@ -29,14 +49,18 @@ function Notifications() {
   const isMobile = window.innerWidth <= 900;
 
   const typeColors = {
-    BOOKING: { bg: "#dbeafe", color: "#1d4ed8" },
-    SYSTEM:  { bg: "#f3f4f6", color: "#374151" },
-    RESOURCE:{ bg: "#d1fae5", color: "#065f46" },
-    ALERT:   { bg: "#fee2e2", color: "#dc2626" },
-    UPDATE:  { bg: "#ede9fe", color: "#6d28d9" },
+    BOOKING:  { bg: "#dbeafe", color: "#1d4ed8" },
+    SYSTEM:   { bg: "#f3f4f6", color: "#374151" },
+    RESOURCE: { bg: "#d1fae5", color: "#065f46" },
+    ALERT:    { bg: "#fee2e2", color: "#dc2626" },
+    UPDATE:   { bg: "#ede9fe", color: "#6d28d9" },
   };
 
-  // ─── FETCH ───────────────────────────────────────────────────────────
+  const filterTabs = isAdmin
+    ? ["ALL", "BOOKING", "ALERT", "UPDATE", "SYSTEM", "RESOURCE"]
+    : ["ALL", "UNREAD", "BOOKING", "ALERT", "UPDATE", "SYSTEM", "RESOURCE"];
+
+  // ─── FETCH ────────────────────────────────────────────────────────────────
   const fetchNotifications = async () => {
     try {
       setLoading(true);
@@ -55,7 +79,31 @@ function Notifications() {
     if (userId) fetchNotifications();
   }, [userId]);
 
-  // ─── FORM HANDLERS ────────────────────────────────────────────────────
+  // ─── FILTER + SEARCH LOGIC ────────────────────────────────────────────────
+  useEffect(() => {
+    let result = [...notifications];
+
+    // Filter by tab
+    if (activeFilter === "UNREAD") {
+      result = result.filter((n) => !n.read);
+    } else if (activeFilter !== "ALL") {
+      result = result.filter((n) => n.type === activeFilter);
+    }
+
+    // Filter by search
+    if (searchQuery.trim() !== "") {
+      const q = searchQuery.toLowerCase();
+      result = result.filter(
+        (n) =>
+          n.title?.toLowerCase().includes(q) ||
+          n.message?.toLowerCase().includes(q)
+      );
+    }
+
+    setFiltered(result);
+  }, [notifications, activeFilter, searchQuery]);
+
+  // ─── FORM HANDLERS ────────────────────────────────────────────────────────
   const handleOpenCreate = () => {
     setEditingNotification(null);
     setFormData({ userId: "", title: "", message: "", type: "SYSTEM" });
@@ -64,12 +112,7 @@ function Notifications() {
 
   const handleOpenEdit = (n) => {
     setEditingNotification(n);
-    setFormData({
-      userId: n.userId,
-      title: n.title,
-      message: n.message,
-      type: n.type,
-    });
+    setFormData({ userId: n.userId, title: n.title, message: n.message, type: n.type });
     setShowForm(true);
   };
 
@@ -89,7 +132,7 @@ function Notifications() {
       alert("Please fill in all fields");
       return;
     }
-    if (isAdmin && !formData.userId.trim()) {
+    if (isAdmin && !editingNotification && !formData.userId.trim()) {
       alert("Please enter a User ID");
       return;
     }
@@ -113,7 +156,7 @@ function Notifications() {
     }
   };
 
-  // ─── ACTION HANDLERS ──────────────────────────────────────────────────
+  // ─── ACTION HANDLERS ──────────────────────────────────────────────────────
   const handleMarkAsRead = async (id) => {
     await markNotificationAsRead(id);
     fetchNotifications();
@@ -132,7 +175,7 @@ function Notifications() {
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 
-  // ─── RENDER ───────────────────────────────────────────────────────────
+  // ─── RENDER ───────────────────────────────────────────────────────────────
   return (
     <>
       {/* HERO */}
@@ -179,7 +222,7 @@ function Notifications() {
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          marginBottom: "28px",
+          marginBottom: "20px",
           flexWrap: "wrap",
           gap: "12px",
         }}>
@@ -188,13 +231,15 @@ function Notifications() {
               {isAdmin ? "All Notifications" : "Your Notifications"}
             </h2>
             <p style={{ margin: 0, color: "#666", fontSize: "14px" }}>
-              {notifications.length} notification{notifications.length !== 1 ? "s" : ""}
+              {notifications.length} total
               {!isAdmin && ` • ${unreadCount} unread`}
+              {searchQuery || activeFilter !== "ALL"
+                ? ` • ${filtered.length} shown`
+                : ""}
             </p>
           </div>
 
           <div style={{ display: "flex", gap: "10px", flexWrap: "wrap" }}>
-            {/* Mark All Read — USER only */}
             {!isAdmin && unreadCount > 0 && (
               <button
                 onClick={handleMarkAllAsRead}
@@ -212,8 +257,6 @@ function Notifications() {
                 ✓ Mark All Read
               </button>
             )}
-
-            {/* Create — ADMIN only */}
             {isAdmin && (
               <button
                 onClick={handleOpenCreate}
@@ -233,6 +276,64 @@ function Notifications() {
           </div>
         </div>
 
+        {/* 🔍 SEARCH BAR */}
+        <div style={{ marginBottom: "16px" }}>
+          <input
+            type="text"
+            placeholder="🔍  Search notifications..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            style={{
+              width: "100%",
+              padding: "12px 16px",
+              fontSize: "14px",
+              border: "2px solid #e5e7eb",
+              borderRadius: "12px",
+              boxSizing: "border-box",
+              outline: "none",
+              transition: "border-color 0.2s",
+            }}
+            onFocus={(e) => (e.target.style.borderColor = "#eab308")}
+            onBlur={(e) => (e.target.style.borderColor = "#e5e7eb")}
+          />
+        </div>
+
+        {/* 🏷 FILTER TABS */}
+        <div style={{
+          display: "flex",
+          gap: "8px",
+          flexWrap: "wrap",
+          marginBottom: "24px",
+        }}>
+          {filterTabs.map((tab) => (
+            <button
+              key={tab}
+              onClick={() => setActiveFilter(tab)}
+              style={{
+                padding: "7px 16px",
+                borderRadius: "999px",
+                border: activeFilter === tab
+                  ? "2px solid #eab308"
+                  : "2px solid #e5e7eb",
+                background: activeFilter === tab ? "#fef9c3" : "#f9fafb",
+                color: activeFilter === tab ? "#92400e" : "#64748b",
+                fontWeight: activeFilter === tab ? "700" : "500",
+                fontSize: "13px",
+                cursor: "pointer",
+                transition: "all 0.2s",
+              }}
+            >
+              {tab === "ALL" && "🔔 All"}
+              {tab === "UNREAD" && `📭 Unread (${unreadCount})`}
+              {tab === "BOOKING" && "📅 Booking"}
+              {tab === "ALERT" && "🚨 Alert"}
+              {tab === "UPDATE" && "🔄 Update"}
+              {tab === "SYSTEM" && "🤖 System"}
+              {tab === "RESOURCE" && "🏢 Resource"}
+            </button>
+          ))}
+        </div>
+
         {/* GRID */}
         <div style={{
           display: "grid",
@@ -250,23 +351,50 @@ function Notifications() {
               }}>
                 <p style={{ color: "#999" }}>Loading notifications...</p>
               </div>
-            ) : notifications.length === 0 ? (
+            ) : filtered.length === 0 ? (
               <div style={{
                 textAlign: "center", padding: "48px",
                 background: "#fff", borderRadius: "16px",
                 boxShadow: "0 2px 12px rgba(0,0,0,0.05)",
               }}>
-                <div style={{ fontSize: "48px", marginBottom: "12px" }}>🔔</div>
-                <h3 style={{ color: "#333", margin: "0 0 8px" }}>No notifications yet</h3>
+                <div style={{ fontSize: "48px", marginBottom: "12px" }}>
+                  {searchQuery ? "🔍" : "🔔"}
+                </div>
+                <h3 style={{ color: "#333", margin: "0 0 8px" }}>
+                  {searchQuery
+                    ? "No results found"
+                    : activeFilter !== "ALL"
+                    ? `No ${activeFilter.toLowerCase()} notifications`
+                    : "No notifications yet"}
+                </h3>
                 <p style={{ color: "#999", fontSize: "14px", margin: 0 }}>
-                  {isAdmin
+                  {searchQuery
+                    ? `No notifications match "${searchQuery}"`
+                    : isAdmin
                     ? "Create a notification using the button above."
                     : "Your notifications will appear here."}
                 </p>
+                {(searchQuery || activeFilter !== "ALL") && (
+                  <button
+                    onClick={() => { setSearchQuery(""); setActiveFilter("ALL"); }}
+                    style={{
+                      marginTop: "16px",
+                      padding: "8px 16px",
+                      background: "#eab308",
+                      border: "none",
+                      borderRadius: "8px",
+                      fontWeight: "700",
+                      cursor: "pointer",
+                      fontSize: "13px",
+                    }}
+                  >
+                    Clear Filters
+                  </button>
+                )}
               </div>
             ) : (
               <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-                {notifications.map((n) => (
+                {filtered.map((n) => (
                   <div key={n.id} style={{
                     background: "#fff",
                     border: n.read ? "1px solid #e5e7eb" : "2px solid #eab308",
@@ -328,7 +456,7 @@ function Notifications() {
                       flexWrap: "wrap",
                       gap: "8px",
                     }}>
-                      <div style={{ display: "flex", gap: "8px", alignItems: "center" }}>
+                      <div style={{ display: "flex", gap: "8px", alignItems: "center", flexWrap: "wrap" }}>
                         {/* Type badge */}
                         <span style={{
                           background: typeColors[n.type]?.bg || "#f3f4f6",
@@ -351,6 +479,15 @@ function Notifications() {
                           fontSize: "11px",
                         }}>
                           {n.source === "SYSTEM" ? "🤖 System" : "👤 Admin"}
+                        </span>
+
+                        {/* ⏰ TIMESTAMP */}
+                        <span style={{
+                          fontSize: "12px",
+                          color: "#94a3b8",
+                          fontWeight: "500",
+                        }}>
+                          🕐 {timeAgo(n.createdAt)}
                         </span>
                       </div>
 
@@ -405,7 +542,7 @@ function Notifications() {
                         </button>
                       )}
 
-                      {/* System Generated label — not editable */}
+                      {/* System Generated label */}
                       {isAdmin && n.source === "SYSTEM" && (
                         <span style={{
                           flex: 1,
@@ -421,7 +558,7 @@ function Notifications() {
                         </span>
                       )}
 
-                      {/* Delete — both USER and ADMIN */}
+                      {/* Delete */}
                       <button
                         onClick={() => handleDelete(n.id)}
                         style={{
@@ -536,6 +673,41 @@ function Notifications() {
                 </>
               )}
 
+              {/* 🔍 Active filter indicator */}
+              {(activeFilter !== "ALL" || searchQuery) && (
+                <div style={{
+                  padding: "14px",
+                  background: "rgba(239,246,255,0.5)",
+                  borderRadius: "10px",
+                  border: "1px solid #bfdbfe",
+                }}>
+                  <p style={{ margin: "0 0 4px", fontSize: "11px", color: "#999", fontWeight: "700" }}>SHOWING</p>
+                  <p style={{ margin: 0, fontSize: "22px", fontWeight: "800", color: "#1d4ed8" }}>
+                    {filtered.length}
+                  </p>
+                  <p style={{ margin: "4px 0 0", fontSize: "11px", color: "#64748b" }}>
+                    {activeFilter !== "ALL" && `Filter: ${activeFilter}`}
+                    {searchQuery && ` • "${searchQuery}"`}
+                  </p>
+                  <button
+                    onClick={() => { setSearchQuery(""); setActiveFilter("ALL"); }}
+                    style={{
+                      marginTop: "8px",
+                      padding: "4px 10px",
+                      background: "#eff6ff",
+                      color: "#1d4ed8",
+                      border: "1px solid #bfdbfe",
+                      borderRadius: "6px",
+                      fontSize: "11px",
+                      fontWeight: "700",
+                      cursor: "pointer",
+                    }}
+                  >
+                    Clear ✕
+                  </button>
+                </div>
+              )}
+
               <div style={{
                 padding: "14px",
                 background: "rgba(255,255,255,0.6)",
@@ -580,7 +752,7 @@ function Notifications() {
 
             <div style={{ display: "flex", flexDirection: "column", gap: "16px", marginBottom: "24px" }}>
 
-              {/* User ID — ADMIN only, create mode only */}
+              {/* User ID — ADMIN only, create mode */}
               {isAdmin && !editingNotification && (
                 <div>
                   <label style={{ display: "block", marginBottom: "6px", fontSize: "14px", fontWeight: "700", color: "#1f2937" }}>
@@ -671,7 +843,6 @@ function Notifications() {
               </div>
             </div>
 
-            {/* BUTTONS */}
             <div style={{ display: "flex", gap: "12px" }}>
               <button
                 onClick={handleCloseForm}
