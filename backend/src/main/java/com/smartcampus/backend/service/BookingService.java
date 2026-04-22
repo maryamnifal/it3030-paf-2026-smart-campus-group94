@@ -8,8 +8,10 @@ import com.smartcampus.backend.exception.ConflictException;
 import com.smartcampus.backend.exception.ResourceNotFoundException;
 import com.smartcampus.backend.model.Booking;
 import com.smartcampus.backend.model.BookingStatus;
+import com.smartcampus.backend.model.Notification;
 import com.smartcampus.backend.model.Resource;
 import com.smartcampus.backend.repository.BookingRepository;
+import com.smartcampus.backend.repository.NotificationRepository;
 import com.smartcampus.backend.repository.ResourceRepository;
 import org.springframework.stereotype.Service;
 
@@ -23,13 +25,28 @@ public class BookingService {
 
     private final BookingRepository bookingRepository;
     private final ResourceRepository resourceRepository;
+    private final NotificationRepository notificationRepository;
 
-    public BookingService(BookingRepository bookingRepository, ResourceRepository resourceRepository) {
+    public BookingService(BookingRepository bookingRepository,
+                          ResourceRepository resourceRepository,
+                          NotificationRepository notificationRepository) {
         this.bookingRepository = bookingRepository;
         this.resourceRepository = resourceRepository;
+        this.notificationRepository = notificationRepository;
     }
 
-    // Create a new booking
+    // ─── NOTIFICATION HELPER ─────────────────────────────────────────────
+    private void sendNotification(String userId, String title, String message, String type) {
+        Notification notification = new Notification();
+        notification.setUserId(userId);
+        notification.setTitle(title);
+        notification.setMessage(message);
+        notification.setType(type);
+        notification.setSource("SYSTEM");
+        notificationRepository.save(notification);
+    }
+
+    // ─── CREATE BOOKING ───────────────────────────────────────────────────
     public BookingResponseDTO createBooking(BookingRequestDTO request) {
         Resource resource = resourceRepository.findById(request.getResourceId())
                 .orElseThrow(() -> new ResourceNotFoundException("Resource not found with id: " + request.getResourceId()));
@@ -61,10 +78,21 @@ public class BookingService {
         booking.setStatus(BookingStatus.PENDING);
 
         Booking saved = bookingRepository.save(booking);
+
+        // 🔔 Notify user booking request received
+        sendNotification(
+            request.getUserId(),
+            "Booking Request Received 📋",
+            "Your booking request on " + request.getDate() +
+            " (" + request.getStartTime() + " - " + request.getEndTime() +
+            ") is pending approval.",
+            "BOOKING"
+        );
+
         return mapToResponse(saved);
     }
 
-    // Get bookings for a specific user
+    // ─── GET MY BOOKINGS ──────────────────────────────────────────────────
     public List<BookingResponseDTO> getMyBookings(String userId) {
         return bookingRepository.findByUserId(userId)
                 .stream()
@@ -72,7 +100,7 @@ public class BookingService {
                 .collect(Collectors.toList());
     }
 
-    // Get all bookings (admin)
+    // ─── GET ALL BOOKINGS (ADMIN) ─────────────────────────────────────────
     public List<BookingResponseDTO> getAllBookings() {
         return bookingRepository.findAll()
                 .stream()
@@ -80,9 +108,7 @@ public class BookingService {
                 .collect(Collectors.toList());
     }
 
-    // ✅ NEW: Get booked slots for a resource on a specific date (for regular users)
-    // Called by GET /api/bookings/availability?resourceId=xxx&date=2026-04-21
-    // Returns PENDING + APPROVED bookings so the frontend can disable those time slots
+    // ─── GET BOOKINGS FOR RESOURCE AND DATE ───────────────────────────────
     public List<BookingResponseDTO> getBookingsForResourceAndDate(String resourceId, String dateStr) {
         LocalDate date = LocalDate.parse(dateStr);
         return bookingRepository.findBookingsForResourceAndDate(resourceId, date)
@@ -91,7 +117,7 @@ public class BookingService {
                 .collect(Collectors.toList());
     }
 
-    // Update a booking (only for PENDING or APPROVED bookings)
+    // ─── UPDATE BOOKING ───────────────────────────────────────────────────
     public BookingResponseDTO updateBooking(String id, BookingUpdateDTO request) {
         Booking booking = bookingRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Booking not found with id: " + id));
@@ -131,81 +157,128 @@ public class BookingService {
         return mapToResponse(bookingRepository.save(booking));
     }
 
-    // Approve a booking
+    // ─── APPROVE BOOKING ──────────────────────────────────────────────────
     public BookingResponseDTO approveBooking(String id) {
         Booking booking = bookingRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Booking not found with id: " + id));
 
         booking.setStatus(BookingStatus.APPROVED);
-        return mapToResponse(bookingRepository.save(booking));
+        Booking saved = bookingRepository.save(booking);
+
+        // 🔔 Notify user
+        sendNotification(
+            booking.getUserId(),
+            "Booking Approved ✅",
+            "Your booking on " + booking.getDate() +
+            " (" + booking.getStartTime() + " - " + booking.getEndTime() +
+            ") has been approved! You're all set.",
+            "BOOKING"
+        );
+
+        return mapToResponse(saved);
     }
 
-    // Reject a booking
+    // ─── REJECT BOOKING ───────────────────────────────────────────────────
     public BookingResponseDTO rejectBooking(String id, StatusUpdateDTO statusUpdate) {
         Booking booking = bookingRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Booking not found with id: " + id));
 
         booking.setStatus(BookingStatus.REJECTED);
         booking.setRejectionReason(statusUpdate.getRejectionReason());
-        return mapToResponse(bookingRepository.save(booking));
+        Booking saved = bookingRepository.save(booking);
+
+        // 🔔 Notify user
+        sendNotification(
+            booking.getUserId(),
+            "Booking Rejected ❌",
+            "Your booking on " + booking.getDate() +
+            " (" + booking.getStartTime() + " - " + booking.getEndTime() +
+            ") was rejected. Reason: " + statusUpdate.getRejectionReason(),
+            "BOOKING"
+        );
+
+        return mapToResponse(saved);
     }
 
-    // Cancel a booking
+    // ─── CANCEL BOOKING ───────────────────────────────────────────────────
     public BookingResponseDTO cancelBooking(String id) {
         Booking booking = bookingRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Booking not found with id: " + id));
 
         booking.setStatus(BookingStatus.CANCELLED);
-        return mapToResponse(bookingRepository.save(booking));
+        Booking saved = bookingRepository.save(booking);
+
+        // 🔔 Notify user
+        sendNotification(
+            booking.getUserId(),
+            "Booking Cancelled 🚫",
+            "Your booking on " + booking.getDate() +
+            " (" + booking.getStartTime() + " - " + booking.getEndTime() +
+            ") has been cancelled.",
+            "BOOKING"
+        );
+
+        return mapToResponse(saved);
     }
 
-    // ✅ NEW: Mark a booking as CHECKED_IN (called from admin verify screen)
+    // ─── CHECK IN BOOKING ─────────────────────────────────────────────────
     public BookingResponseDTO checkInBooking(String id) {
         Booking booking = bookingRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Booking not found with id: " + id));
- 
+
         if (booking.getStatus() != BookingStatus.APPROVED) {
             throw new ConflictException(
                 "Only APPROVED bookings can be checked in. Current status: " + booking.getStatus()
             );
         }
- 
+
         booking.setStatus(BookingStatus.CHECKED_IN);
-        return mapToResponse(bookingRepository.save(booking));
+        Booking saved = bookingRepository.save(booking);
+
+        // 🔔 Notify user
+        sendNotification(
+            booking.getUserId(),
+            "Checked In Successfully 🎉",
+            "You have been checked in for your booking on " + booking.getDate() +
+            " (" + booking.getStartTime() + " - " + booking.getEndTime() + ").",
+            "BOOKING"
+        );
+
+        return mapToResponse(saved);
     }
 
-    // Delete a booking
+    // ─── DELETE BOOKING ───────────────────────────────────────────────────
     public void deleteBooking(String id) {
         Booking booking = bookingRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Booking not found with id: " + id));
-
         bookingRepository.delete(booking);
     }
 
     // ─── VALIDATION HELPERS ───────────────────────────────────────────────
-
     private void validateResourceStatus(Resource resource) {
         if (resource.getStatus() == null || !resource.getStatus().equals("ACTIVE")) {
-            throw new ConflictException("Cannot book " + (resource.getStatus() != null ? resource.getStatus() : "UNKNOWN") +
-                    " resource. Resource must be ACTIVE.");
+            throw new ConflictException("Cannot book " +
+                (resource.getStatus() != null ? resource.getStatus() : "UNKNOWN") +
+                " resource. Resource must be ACTIVE.");
         }
     }
 
     private void validateCapacity(Resource resource, int expectedAttendees) {
         if (expectedAttendees > resource.getCapacity()) {
-            throw new ConflictException("Expected attendees (" + expectedAttendees + ") exceeds resource capacity (" +
-                    resource.getCapacity() + ").");
+            throw new ConflictException("Expected attendees (" + expectedAttendees +
+                ") exceeds resource capacity (" + resource.getCapacity() + ").");
         }
     }
 
-    private void validateAvailabilityWindow(Resource resource, LocalDate bookingDate, LocalTime bookingStart, LocalTime bookingEnd) {
+    private void validateAvailabilityWindow(Resource resource, LocalDate bookingDate,
+                                             LocalTime bookingStart, LocalTime bookingEnd) {
         if (resource.getAvailabilityWindows() == null || resource.getAvailabilityWindows().isEmpty()) {
             return;
         }
 
         String dayOfWeek = bookingDate.getDayOfWeek().toString().substring(0, 3).toUpperCase();
-
         boolean foundMatchingWindow = false;
+
         for (String window : resource.getAvailabilityWindows()) {
             String[] parts = window.split(" ");
             if (parts.length < 2) continue;
@@ -221,21 +294,22 @@ public class BookingService {
             LocalTime windowStart = LocalTime.parse(times[0]);
             LocalTime windowEnd = LocalTime.parse(times[1]);
 
-            if (bookingStart.isBefore(windowStart) || bookingEnd.isAfter(windowEnd) || bookingStart.isAfter(bookingEnd)) {
+            if (bookingStart.isBefore(windowStart) || bookingEnd.isAfter(windowEnd) ||
+                    bookingStart.isAfter(bookingEnd)) {
                 throw new ConflictException("Booking time (" + bookingStart + "-" + bookingEnd +
-                        ") is outside resource availability window (" +
-                        windowStart + "-" + windowEnd + " " + dayOfWeek + ").");
+                    ") is outside resource availability window (" +
+                    windowStart + "-" + windowEnd + " " + dayOfWeek + ").");
             }
-
             return;
         }
 
         if (!foundMatchingWindow) {
-            throw new ConflictException("Resource is not available on " + dayOfWeek + ". Available windows: " +
-                    String.join(", ", resource.getAvailabilityWindows()));
+            throw new ConflictException("Resource is not available on " + dayOfWeek +
+                ". Available windows: " + String.join(", ", resource.getAvailabilityWindows()));
         }
     }
 
+    // ─── MAPPER ───────────────────────────────────────────────────────────
     private BookingResponseDTO mapToResponse(Booking booking) {
         BookingResponseDTO response = new BookingResponseDTO();
         response.setId(booking.getId());
