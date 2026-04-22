@@ -66,9 +66,9 @@ export default function QRCodeDisplay({ booking, resourceName }) {
               background: "#fff",
               borderRadius: "20px",
               padding: "32px",
-              width: "440px",
+              width: "500px",
               maxWidth: "100%",
-              maxHeight: "30vh",
+              maxHeight: "50vh",
               overflowY: "auto",
               boxShadow: "0 20px 60px rgba(20, 20, 20, 0.3)",
               position: "relative",
@@ -84,11 +84,15 @@ export default function QRCodeDisplay({ booking, resourceName }) {
               {/* Back / close arrow */}
               
               <h2 style={{
-                fontSize: "22px",
+                fontSize: "25px",
                 fontWeight: 800,
                 color: "#0f172a",
                 margin: 0,
+                AlignItems: "center",
+                display: "inline-flex",
+                gap: "10px",
               }}>
+                
                 Booking QR Code
               </h2>
 

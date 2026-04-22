@@ -305,7 +305,7 @@ export default function CheckInVerify() {
           
           <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "7px 16px", borderRadius: "999px", background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.88)", fontSize: "12px", fontWeight: 600, marginBottom: "16px" }}>
             <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: "var(--primary, #f4b400)", display: "inline-block" }} />
-            ADMIN · CHECK-IN
+            <b>BOOKING CHECK-IN</b>
           </div>
 
           <h1 style={{ fontSize: "clamp(26px, 5vw, 44px)", fontWeight: 800, color: "#fff", letterSpacing: "-1px", marginBottom: "10px" }}>
