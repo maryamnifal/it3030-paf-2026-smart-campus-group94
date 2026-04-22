@@ -59,6 +59,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.GET, "/api/bookings").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.PATCH, "/api/bookings/*/approve").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.PATCH, "/api/bookings/*/reject").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/api/bookings/*/checkin").hasRole("ADMIN")
 
                 // Module C - Ticket rules (admin only)
                 .requestMatchers(HttpMethod.GET, "/api/tickets").hasRole("ADMIN")

@@ -372,3 +372,24 @@ export function downloadBookingSummaryReport(booking, resources) {
   addFooter(doc, page);
   doc.save(`unisphere-booking-report-${new Date().toISOString().slice(0,10)}.pdf`);
 }
+// ✅ Export generateBookingId so pages can import it
+export function generateBookingId(booking, resourceType) {
+  const typeMap = {
+    LECTURE_HALL:    "HALL",
+    SMART_CLASSROOM: "ROOM",
+    CLASSROOM:       "ROOM",
+    MEETING_ROOM:    "ROOM",
+    SEMINAR_ROOM:    "ROOM",
+    COMPUTER_LAB:    "LAB",
+    SCIENCE_LAB:     "LAB",
+    LABORATORY:      "LAB",
+    EQUIPMENT:       "EQUIP",
+    AV_ROOM:         "AV",
+    AUDITORIUM:      "AUD",
+  };
+  const raw    = (resourceType || "RESOURCE").toUpperCase().replaceAll(" ", "_");
+  const prefix = typeMap[raw] || raw.slice(0, 5);
+  const hex    = (booking.id || "000000000000").slice(-10);
+  const num    = parseInt(hex, 16) % 90000 + 10000;
+  return `${prefix}#${num}`;
+}
