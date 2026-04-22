@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { Bell } from "lucide-react"; // ✅ NEW
+import { Bell } from "lucide-react";
+import { getNotificationsByUser } from "../api/notificationApi";
 
 const navLinks = [
   { label: "Home", path: "/" },
@@ -9,19 +10,36 @@ const navLinks = [
   { label: "Facilities", path: "/facilities" },
   { label: "Bookings", path: "/bookings" },
   { label: "Incidents", path: "/incidents" },
-  // ❌ Removed Notifications
 ];
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
+  const [unreadCount, setUnreadCount] = useState(0); // ✅ real count
   const navigate = useNavigate();
   const location = useLocation();
-  const { token, name, role, logout } = useAuth();
+  const { token, name, role, userId, logout } = useAuth();
 
   const isLoginPage = location.pathname === "/login";
 
-  // 🔔 mock unread count (replace later with API)
-  const unreadCount = 3;
+  // ✅ Fetch real unread count
+  useEffect(() => {
+    const fetchUnreadCount = async () => {
+      if (!userId || !token) return;
+      try {
+        const notifications = await getNotificationsByUser(userId);
+        const unread = notifications.filter((n) => !n.read).length;
+        setUnreadCount(unread);
+      } catch (error) {
+        console.error("Failed to fetch notifications:", error);
+      }
+    };
+
+    fetchUnreadCount();
+
+    // Refresh every 30 seconds
+    const interval = setInterval(fetchUnreadCount, 30000);
+    return () => clearInterval(interval);
+  }, [userId, token]);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
@@ -84,14 +102,7 @@ export default function Navbar() {
           >
             U
           </div>
-
-          <div
-            style={{
-              fontSize: "20px",
-              fontWeight: 800,
-              color: "#0f172a",
-            }}
-          >
+          <div style={{ fontSize: "20px", fontWeight: 800, color: "#0f172a" }}>
             Uni<span style={{ color: "var(--primary)" }}>Sphere</span>
           </div>
         </div>
@@ -103,15 +114,10 @@ export default function Navbar() {
               let targetPath = link.path;
 
               if (link.label === "Dashboard") {
-                targetPath =
-                  role === "ADMIN"
-                    ? "/admin/dashboard"
-                    : "/user/dashboard";
+                targetPath = role === "ADMIN" ? "/admin/dashboard" : "/user/dashboard";
               }
-
               if (link.label === "Bookings") {
-                targetPath =
-                  role === "ADMIN" ? "/admin/bookings" : "/bookings";
+                targetPath = role === "ADMIN" ? "/admin/bookings" : "/bookings";
               }
 
               const active =
@@ -139,7 +145,6 @@ export default function Navbar() {
                   }}
                 >
                   {link.label}
-
                   {active && (
                     <div
                       style={{
@@ -186,7 +191,6 @@ export default function Navbar() {
                 }}
               >
                 <Bell size={20} color="#475569" />
-
                 {unreadCount > 0 && (
                   <span
                     style={{
@@ -212,13 +216,7 @@ export default function Navbar() {
               </div>
 
               {/* USER NAME */}
-              <span
-                style={{
-                  fontSize: "14px",
-                  fontWeight: 600,
-                  color: "#475569",
-                }}
-              >
+              <span style={{ fontSize: "14px", fontWeight: 600, color: "#475569" }}>
                 {name}
               </span>
 
@@ -252,7 +250,6 @@ export default function Navbar() {
               >
                 Login
               </button>
-
               <button
                 onClick={() => navigate("/login")}
                 style={{
