@@ -214,6 +214,21 @@ export default function Navbar() {
                   </span>
                 )}
               </div>
+              {/* ⚙️ Preferences link — USER only */}
+{token && role !== "ADMIN" && (
+    <div
+        onClick={() => navigate("/preferences")}
+        style={{
+            cursor: "pointer",
+            padding: "6px",
+            borderRadius: "8px",
+            fontSize: "18px",
+        }}
+        title="Notification Preferences"
+    >
+        ⚙️
+    </div>
+)}
 
               {/* USER NAME */}
               <span style={{ fontSize: "14px", fontWeight: 600, color: "#475569" }}>
