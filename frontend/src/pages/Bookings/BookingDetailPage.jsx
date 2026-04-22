@@ -4,7 +4,7 @@ import { getMyBookings, cancelBooking, updateBooking } from "../../api/bookingAp
 import { getResourceById } from "../../api/resourceApi";
 import QRCodeDisplay from "../../components/QRCodeDisplay";
 import TimeSlotSelector from "../../components/TimeSlotSelector";
-import { downloadBookingConfirmation, generateBookingId } from "../../utils/bookingPDF";
+import { downloadBookingConfirmation, generateBookingId } from "../../utils/bookingPDF.js";
 
 // ─── Status config — light colours like facilities page badges ────────────────
 const STATUS_CONFIG = {

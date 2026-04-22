@@ -9,7 +9,7 @@ import {
 } from "../../api/bookingApi";
 import TimeSlotSelector from "../../components/TimeSlotSelector";
 import QRCodeDisplay from "../../components/QRCodeDisplay";
-import { downloadBookingConfirmation, generateBookingId } from "../../utils/bookingPDF";
+import { downloadBookingConfirmation, generateBookingId } from "../../utils/bookingPDF.js";
 
 // ─── Status config ────────────────────────────────────────────────────────────
 const STATUS_CONFIG = {

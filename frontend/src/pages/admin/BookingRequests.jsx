@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getAllBookings, approveBooking, rejectBooking, deleteBooking } from "../../api/bookingApi";
 import { getAllResources } from "../../api/resourceApi";
-import { downloadBookingConfirmation, downloadBookingSummaryReport, generateBookingId } from "../../utils/bookingPDF";
+import { downloadBookingConfirmation, downloadBookingSummaryReport, generateBookingId } from "../../utils/bookingPDF.js";
 
 const card = { background: "#fff", border: "1px solid rgba(15,23,42,0.08)", borderRadius: "20px", boxShadow: "0 4px 20px rgba(15,23,42,0.05)" };
 
