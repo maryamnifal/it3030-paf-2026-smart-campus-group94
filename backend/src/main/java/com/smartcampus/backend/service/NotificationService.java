@@ -11,17 +11,33 @@ import java.util.List;
 public class NotificationService {
 
     private final NotificationRepository repository;
+    private final PreferenceService preferenceService;
 
-    public NotificationService(NotificationRepository repository) {
+    public NotificationService(NotificationRepository repository,
+                               PreferenceService preferenceService) {
         this.repository = repository;
+        this.preferenceService = preferenceService;
     }
 
-    // Create a new notification (ADMIN manual)
+    // Create notification — checks preferences first
     public Notification create(Notification notification) {
-        // If source not set, default to ADMIN
         if (notification.getSource() == null) {
             notification.setSource("ADMIN");
         }
+
+        // Check if user has this type enabled
+        // Skip preference check for ADMIN-created notifications
+        if ("SYSTEM".equals(notification.getSource())) {
+            boolean enabled = preferenceService.isTypeEnabled(
+                notification.getUserId(),
+                notification.getType()
+            );
+            if (!enabled) {
+                // User disabled this type — don't save
+                return notification;
+            }
+        }
+
         return repository.save(notification);
     }
 
@@ -55,7 +71,6 @@ public class NotificationService {
         Notification notification = repository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Notification not found with id: " + id));
 
-        // Block editing system-generated notifications
         if ("SYSTEM".equals(notification.getSource())) {
             throw new RuntimeException("System-generated notifications cannot be edited.");
         }
