@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { Bell } from "lucide-react";
+import { Bell, ChevronDown } from "lucide-react";
 import { getNotificationsByUser } from "../api/notificationApi";
 
 const navLinks = [
@@ -24,6 +24,8 @@ export default function Navbar() {
   const { token, name, role, userId, logout } = useAuth();
 
   const isLoginPage = location.pathname === "/login";
+  const displayName = name || "User";
+  const profileInitial = displayName.charAt(0).toUpperCase();
 
   useEffect(() => {
     const fetchUnreadCount = async () => {
@@ -189,7 +191,7 @@ export default function Navbar() {
         )}
 
         {/* RIGHT SIDE */}
-        <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
           {isLoginPage ? (
             <button
               onClick={() => navigate("/")}
@@ -215,9 +217,10 @@ export default function Navbar() {
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  width: "36px",
-                  height: "36px",
+                  width: "34px",
+                  height: "34px",
                   borderRadius: "8px",
+                  flexShrink: 0,
                 }}
               >
                 <Bell size={20} color="#475569" />
@@ -227,17 +230,17 @@ export default function Navbar() {
                       position: "absolute",
                       top: "2px",
                       right: "2px",
-                      minWidth: "16px",
-                      height: "16px",
+                      minWidth: "14px",
+                      height: "14px",
                       background: "#ef4444",
                       color: "#fff",
                       borderRadius: "999px",
-                      fontSize: "10px",
+                      fontSize: "9px",
                       fontWeight: 700,
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
-                      padding: "0 4px",
+                      padding: "0 3px",
                       lineHeight: 1,
                     }}
                   >
@@ -250,27 +253,64 @@ export default function Navbar() {
               <div ref={dropdownRef} style={{ position: "relative" }}>
                 <div
                   onClick={() => setMenuOpen((prev) => !prev)}
+                  onMouseEnter={(e) =>
+                    (e.currentTarget.style.background = "#f8fafc")
+                  }
+                  onMouseLeave={(e) =>
+                    (e.currentTarget.style.background = "transparent")
+                  }
                   style={{
                     display: "flex",
                     alignItems: "center",
-                    gap: "6px",
+                    gap: "8px",
                     cursor: "pointer",
-                    fontSize: "14px",
-                    fontWeight: 600,
-                    color: "#475569",
                     userSelect: "none",
+                    padding: "4px 8px",
+                    borderRadius: "999px",
+                    transition: "background 0.2s ease",
                   }}
                 >
-                  <span>{name}</span>
+                  {/* NAME */}
                   <span
                     style={{
-                      fontSize: "12px",
-                      transform: menuOpen ? "rotate(180deg)" : "rotate(0deg)",
-                      transition: "transform 0.2s ease",
+                      fontSize: "14px",
+                      fontWeight: 600,
+                      color: "#475569",
+                      whiteSpace: "nowrap",
                     }}
                   >
-                    ▼
+                    {displayName}
                   </span>
+
+                  {/* PREMIUM ARROW */}
+                  <ChevronDown
+                    size={16}
+                    style={{
+                      color: "#64748b",
+                      transition: "transform 0.2s ease",
+                      transform: menuOpen ? "rotate(180deg)" : "rotate(0deg)",
+                    }}
+                  />
+
+                  {/* PROFILE ICON */}
+                  <div
+                    style={{
+                      width: "30px",
+                      height: "30px",
+                      borderRadius: "50%",
+                      background: "var(--primary)",
+                      color: "#111827",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: "13px",
+                      fontWeight: 800,
+                      boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
+                      flexShrink: 0,
+                    }}
+                  >
+                    {profileInitial}
+                  </div>
                 </div>
 
                 {menuOpen && (
@@ -278,11 +318,11 @@ export default function Navbar() {
                     style={{
                       position: "absolute",
                       right: 0,
-                      top: "42px",
-                      width: "180px",
+                      top: "44px",
+                      width: "190px",
                       background: "#fff",
                       border: "1px solid rgba(15,23,42,0.08)",
-                      borderRadius: "12px",
+                      borderRadius: "14px",
                       boxShadow: "0 12px 30px rgba(15,23,42,0.12)",
                       padding: "8px 0",
                       zIndex: 1100,
@@ -308,7 +348,7 @@ export default function Navbar() {
                       <div
                         onClick={() => {
                           setMenuOpen(false);
-                          navigate("/notification-preferences");
+                          navigate("/preferences");
                         }}
                         style={menuItemStyle}
                         onMouseEnter={(e) =>
