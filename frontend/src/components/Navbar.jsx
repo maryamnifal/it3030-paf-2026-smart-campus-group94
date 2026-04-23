@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { Bell } from "lucide-react";
@@ -14,17 +14,21 @@ const navLinks = [
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
-  const [unreadCount, setUnreadCount] = useState(0); // ✅ real count
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [menuOpen, setMenuOpen] = useState(false);
+
   const navigate = useNavigate();
   const location = useLocation();
+  const dropdownRef = useRef(null);
+
   const { token, name, role, userId, logout } = useAuth();
 
   const isLoginPage = location.pathname === "/login";
 
-  // ✅ Fetch real unread count
   useEffect(() => {
     const fetchUnreadCount = async () => {
       if (!userId || !token) return;
+
       try {
         const notifications = await getNotificationsByUser(userId);
         const unread = notifications.filter((n) => !n.read).length;
@@ -35,9 +39,8 @@ export default function Navbar() {
     };
 
     fetchUnreadCount();
-
-    // Refresh every 30 seconds
     const interval = setInterval(fetchUnreadCount, 30000);
+
     return () => clearInterval(interval);
   }, [userId, token]);
 
@@ -47,9 +50,29 @@ export default function Navbar() {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   const handleLogout = () => {
+    setMenuOpen(false);
     logout();
     navigate("/", { replace: true });
+  };
+
+  const menuItemStyle = {
+    padding: "10px 16px",
+    cursor: "pointer",
+    fontSize: "14px",
+    color: "#334155",
+    transition: "background 0.2s ease",
   };
 
   return (
@@ -114,8 +137,10 @@ export default function Navbar() {
               let targetPath = link.path;
 
               if (link.label === "Dashboard") {
-                targetPath = role === "ADMIN" ? "/admin/dashboard" : "/user/dashboard";
+                targetPath =
+                  role === "ADMIN" ? "/admin/dashboard" : "/user/dashboard";
               }
+
               if (link.label === "Bookings") {
                 targetPath = role === "ADMIN" ? "/admin/bookings" : "/bookings";
               }
@@ -164,7 +189,7 @@ export default function Navbar() {
         )}
 
         {/* RIGHT SIDE */}
-        <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
           {isLoginPage ? (
             <button
               onClick={() => navigate("/")}
@@ -180,13 +205,18 @@ export default function Navbar() {
             </button>
           ) : token ? (
             <>
-              {/* 🔔 Notification Bell */}
+              {/* NOTIFICATION BELL */}
               <div
                 onClick={() => navigate("/notifications")}
+                title="Notifications"
                 style={{
                   position: "relative",
                   cursor: "pointer",
-                  padding: "6px",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  width: "36px",
+                  height: "36px",
                   borderRadius: "8px",
                 }}
               >
@@ -195,8 +225,8 @@ export default function Navbar() {
                   <span
                     style={{
                       position: "absolute",
-                      top: "-2px",
-                      right: "-2px",
+                      top: "2px",
+                      right: "2px",
                       minWidth: "16px",
                       height: "16px",
                       background: "#ef4444",
@@ -208,78 +238,121 @@ export default function Navbar() {
                       alignItems: "center",
                       justifyContent: "center",
                       padding: "0 4px",
+                      lineHeight: 1,
                     }}
                   >
                     {unreadCount}
                   </span>
                 )}
               </div>
-              {/* ⚙️ Preferences link — USER only */}
-{token && role !== "ADMIN" && (
-    <div
-        onClick={() => navigate("/preferences")}
-        style={{
-            cursor: "pointer",
-            padding: "6px",
-            borderRadius: "8px",
-            fontSize: "18px",
-        }}
-        title="Notification Preferences"
-    >
-        ⚙️
-    </div>
-)}
 
-              {/* USER NAME */}
-              <span style={{ fontSize: "14px", fontWeight: 600, color: "#475569" }}>
-                {name}
-              </span>
+              {/* USER DROPDOWN */}
+              <div ref={dropdownRef} style={{ position: "relative" }}>
+                <div
+                  onClick={() => setMenuOpen((prev) => !prev)}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "6px",
+                    cursor: "pointer",
+                    fontSize: "14px",
+                    fontWeight: 600,
+                    color: "#475569",
+                    userSelect: "none",
+                  }}
+                >
+                  <span>{name}</span>
+                  <span
+                    style={{
+                      fontSize: "12px",
+                      transform: menuOpen ? "rotate(180deg)" : "rotate(0deg)",
+                      transition: "transform 0.2s ease",
+                    }}
+                  >
+                    ▼
+                  </span>
+                </div>
 
-              {/* LOGOUT */}
-              <button
-                onClick={handleLogout}
-                style={{
-                  background: "var(--primary)",
-                  color: "#111827",
-                  border: "none",
-                  padding: "8px 14px",
-                  borderRadius: "8px",
-                  fontWeight: 700,
-                  cursor: "pointer",
-                }}
-              >
-                Logout
-              </button>
+                {menuOpen && (
+                  <div
+                    style={{
+                      position: "absolute",
+                      right: 0,
+                      top: "42px",
+                      width: "180px",
+                      background: "#fff",
+                      border: "1px solid rgba(15,23,42,0.08)",
+                      borderRadius: "12px",
+                      boxShadow: "0 12px 30px rgba(15,23,42,0.12)",
+                      padding: "8px 0",
+                      zIndex: 1100,
+                    }}
+                  >
+                    <div
+                      onClick={() => {
+                        setMenuOpen(false);
+                        navigate("/profile");
+                      }}
+                      style={menuItemStyle}
+                      onMouseEnter={(e) =>
+                        (e.currentTarget.style.background = "#f8fafc")
+                      }
+                      onMouseLeave={(e) =>
+                        (e.currentTarget.style.background = "transparent")
+                      }
+                    >
+                      Profile
+                    </div>
+
+                    {role !== "ADMIN" && (
+                      <div
+                        onClick={() => {
+                          setMenuOpen(false);
+                          navigate("/notification-preferences");
+                        }}
+                        style={menuItemStyle}
+                        onMouseEnter={(e) =>
+                          (e.currentTarget.style.background = "#f8fafc")
+                        }
+                        onMouseLeave={(e) =>
+                          (e.currentTarget.style.background = "transparent")
+                        }
+                      >
+                        Notifications
+                      </div>
+                    )}
+
+                    <div
+                      onClick={handleLogout}
+                      style={{ ...menuItemStyle, color: "#ef4444" }}
+                      onMouseEnter={(e) =>
+                        (e.currentTarget.style.background = "#fef2f2")
+                      }
+                      onMouseLeave={(e) =>
+                        (e.currentTarget.style.background = "transparent")
+                      }
+                    >
+                      Logout
+                    </div>
+                  </div>
+                )}
+              </div>
             </>
           ) : (
-            <>
-              <button
-                onClick={() => navigate("/login")}
-                style={{
-                  background: "transparent",
-                  border: "none",
-                  fontWeight: 600,
-                  cursor: "pointer",
-                  color: "#475569",
-                }}
-              >
-                Login
-              </button>
-              <button
-                onClick={() => navigate("/login")}
-                style={{
-                  background: "var(--primary)",
-                  color: "#111827",
-                  border: "none",
-                  padding: "8px 14px",
-                  borderRadius: "8px",
-                  fontWeight: 700,
-                  cursor: "pointer",
-                }}
-              >
-                Get Started
-              </button>
-            </>
+            <button
+              onClick={() => navigate("/login")}
+              style={{
+                background: "var(--primary)",
+                color: "#111827",
+                border: "none",
+                padding: "10px 16px",
+                borderRadius: "10px",
+                fontWeight: 700,
+                cursor: "pointer",
+              }}
+            >
+              Get Started
+            </button>
           )}
         </div>
       </div>
