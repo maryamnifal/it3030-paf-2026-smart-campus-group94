@@ -34,47 +34,42 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
 
         OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
 
-        // ✅ Detect provider first
         String provider = request.getRequestURI().contains("github") ? "github" : "google";
 
-        // ✅ Get email — GitHub sometimes returns null email
         String email = oAuth2User.getAttribute("email");
+        String name = oAuth2User.getAttribute("name");
+        String picture = oAuth2User.getAttribute("picture");
 
-        // ✅ GitHub fallback — use login as email if email is null
-        if (email == null || email.isBlank()) {
-            String login = oAuth2User.getAttribute("login"); // GitHub username
-            if (login != null) {
-                email = login + "@github.com"; // create fake email from username
+        if ("github".equals(provider)) {
+            String login = oAuth2User.getAttribute("login");
+            String avatarUrl = oAuth2User.getAttribute("avatar_url");
+
+            if (email == null || email.isBlank()) {
+                email = login + "@github.local";
+            }
+
+            if (name == null || name.isBlank()) {
+                name = login;
+            }
+
+            if (picture == null || picture.isBlank()) {
+                picture = avatarUrl;
             }
         }
 
-        // ✅ Get name — GitHub sometimes returns null name
-        String name = oAuth2User.getAttribute("name");
-        if (name == null || name.isBlank()) {
-            // Try GitHub login (username) as fallback
-            name = oAuth2User.getAttribute("login");
-        }
-        if (name == null || name.isBlank()) {
-            name = email; // last resort
+        if (email == null || email.isBlank()) {
+            response.sendRedirect(frontendUrl + "/login?error=email_missing");
+            return;
         }
 
-        // ✅ Get picture
-        String picture = oAuth2User.getAttribute("picture");
-        // GitHub uses avatar_url instead of picture
-        if (picture == null || picture.isBlank()) {
-            picture = oAuth2User.getAttribute("avatar_url");
+        if (name == null || name.isBlank()) {
+            name = email;
         }
+
         if (picture == null) {
             picture = "";
         }
 
-        // ✅ Safety check — if email still null something is very wrong
-        if (email == null || email.isBlank()) {
-            response.sendRedirect(frontendUrl + "/login?error=email_not_found");
-            return;
-        }
-
-        // ✅ Save or update user
         Optional<User> existingUser = userRepository.findByEmail(email);
         User user;
 
@@ -96,18 +91,22 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
                     .build();
         }
 
-        userRepository.save(user);
+        user = userRepository.save(user);
 
-        // ✅ Generate JWT
         String token = jwtUtil.generateToken(email, user.getRole(), name);
 
-        // ✅ Redirect to frontend
+        String safeFrontendUrl = frontendUrl != null ? frontendUrl : "";
+        String safeToken = token != null ? token : "";
+        String safeRole = user.getRole() != null ? user.getRole() : "USER";
+        String safeName = name != null ? name : "";
+        String safeUserId = user.getId() != null ? String.valueOf(user.getId()) : "";
+
         response.sendRedirect(
-                frontendUrl
-                        + "/auth/callback?token=" + URLEncoder.encode(token, StandardCharsets.UTF_8)
-                        + "&role=" + URLEncoder.encode(user.getRole(), StandardCharsets.UTF_8)
-                        + "&name=" + URLEncoder.encode(name, StandardCharsets.UTF_8)
-                        + "&userId=" + URLEncoder.encode(user.getId(), StandardCharsets.UTF_8)
+                safeFrontendUrl
+                        + "/auth/callback?token=" + URLEncoder.encode(safeToken, StandardCharsets.UTF_8)
+                        + "&role=" + URLEncoder.encode(safeRole, StandardCharsets.UTF_8)
+                        + "&name=" + URLEncoder.encode(safeName, StandardCharsets.UTF_8)
+                        + "&userId=" + URLEncoder.encode(safeUserId, StandardCharsets.UTF_8)
         );
     }
 }
