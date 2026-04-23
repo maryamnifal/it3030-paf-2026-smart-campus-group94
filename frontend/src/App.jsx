@@ -20,6 +20,7 @@ import TicketListPage from "./pages/incidents/TicketListPage";
 import TicketDetailPage from "./pages/incidents/TicketDetailPage";
 import CreateTicketPage from "./pages/incidents/CreateTicketPage";
 import NotificationPreferences from "./pages/notifications/NotificationPreferences";
+import Profile from "./pages/user/Profile";
 
 function AppLayout() {
   return (
@@ -65,6 +66,15 @@ function AppLayout() {
             element={
               <ProtectedRoute allowedRole="USER">
                 <UserDashboard />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <Profile />
               </ProtectedRoute>
             }
           />
