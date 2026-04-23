@@ -15,12 +15,10 @@ import BookingsPage from "./pages/Bookings/BookingsPage";
 import CreateBookingPage from "./pages/Bookings/CreateBookingPage";
 import BookingDetailPage from "./pages/Bookings/BookingDetailPage"; // ✅ NEW
 import BookingRequests from "./pages/admin/BookingRequests";
-import CheckInVerify from "./pages/admin/CheckInVerify";
+import CheckInVerify from "./pages/admin/CheckInVerify"; // ✅ NEW
 import TicketListPage from "./pages/incidents/TicketListPage";
 import TicketDetailPage from "./pages/incidents/TicketDetailPage";
 import CreateTicketPage from "./pages/incidents/CreateTicketPage";
-import NotificationPreferences from "./pages/notifications/NotificationPreferences";
-import Profile from "./pages/user/Profile";
 
 function AppLayout() {
   return (
@@ -29,12 +27,10 @@ function AppLayout() {
 
       <main style={{ flex: 1 }}>
         <Routes>
-          {/* PUBLIC ROUTES */}
           <Route path="/" element={<Home />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
           <Route path="/login" element={<LoginPage />} />
 
-          {/* ADMIN ROUTES */}
           <Route
             path="/admin/dashboard"
             element={
@@ -43,24 +39,7 @@ function AppLayout() {
               </ProtectedRoute>
             }
           />
-          <Route
-            path="/admin/bookings"
-            element={
-              <ProtectedRoute allowedRole="ADMIN">
-                <BookingRequests />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/admin/checkin"
-            element={
-              <ProtectedRoute allowedRole="ADMIN">
-                <CheckInVerify />
-              </ProtectedRoute>
-            }
-          />
 
-          {/* USER ROUTES */}
           <Route
             path="/user/dashboard"
             element={
@@ -70,14 +49,28 @@ function AppLayout() {
             }
           />
 
+          <Route path="/facilities" element={<ResourceList />} />
+
           <Route
-            path="/profile"
+            path="/facilities/new"
             element={
-              <ProtectedRoute>
-                <Profile />
+              <ProtectedRoute allowedRole="ADMIN">
+                <ResourceForm />
               </ProtectedRoute>
             }
           />
+
+          <Route
+            path="/facilities/edit/:id"
+            element={
+              <ProtectedRoute allowedRole="ADMIN">
+                <ResourceForm />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route path="/facilities/:id" element={<ResourceDetail />} />
+
           <Route
             path="/bookings"
             element={
@@ -91,61 +84,37 @@ function AppLayout() {
           <Route 
             path="/bookings/new" 
             element={
-             <ProtectedRoute allowedRole="USER">
-               <CreateBookingPage />
-             </ProtectedRoute>
-           } 
-          />
-
-          {/* ✅ NEW — booking detail page like ticket detail */}
-          <Route 
-            path="/bookings/:id" 
-            element={
               <ProtectedRoute allowedRole="USER">
-                <BookingDetailPage />
+                <CreateBookingPage />
               </ProtectedRoute>
             } 
           />
 
-          {/* ✅ NOTIFICATION PREFERENCES - USER only */}
+          {/* ✅ NEW — booking detail page like ticket detail */}
+          <Route path="/bookings/:id" element={<ProtectedRoute allowedRole="USER"><BookingDetailPage /></ProtectedRoute>} />
+ 
+            
+ 
+
           <Route
-            path="/preferences"
+            path="/admin/bookings"
             element={
-              <ProtectedRoute allowedRole="USER">
-                <NotificationPreferences />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/preferences"
-            element={
-              <ProtectedRoute allowedRole="USER">
-                <NotificationPreferences />
+              <ProtectedRoute allowedRole="ADMIN">
+                <BookingRequests />
               </ProtectedRoute>
             }
           />
 
-          {/* FACILITIES ROUTES */}
-          <Route path="/facilities" element={<ResourceList />} />
+          
           <Route
-            path="/facilities/new"
+            path="/admin/checkin"
             element={
               <ProtectedRoute allowedRole="ADMIN">
-                <ResourceForm />
+                <CheckInVerify />
               </ProtectedRoute>
             }
           />
-          <Route
-            path="/facilities/edit/:id"
-            element={
-              <ProtectedRoute allowedRole="ADMIN">
-                <ResourceForm />
-              </ProtectedRoute>
-            }
-          />
-          <Route path="/facilities/:id" element={<ResourceDetail />} />
 
-          {/* INCIDENTS ROUTES */}
           <Route
             path="/incidents"
             element={
@@ -154,6 +123,7 @@ function AppLayout() {
               </ProtectedRoute>
             }
           />
+
           <Route
             path="/incidents/create"
             element={
@@ -162,6 +132,7 @@ function AppLayout() {
               </ProtectedRoute>
             }
           />
+
           <Route
             path="/incidents/:id"
             element={
@@ -171,8 +142,7 @@ function AppLayout() {
             }
           />
 
-          {/* NOTIFICATIONS ROUTE */}
-          <Route
+         <Route
             path="/notifications"
             element={
               <ProtectedRoute>

@@ -19,6 +19,7 @@ public class BookingResponseDTO {
     private int expectedAttendees;
     private BookingStatus status;
     private String rejectionReason;
+    private String approvalMessage; // ✅ NEW
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
@@ -55,6 +56,10 @@ public class BookingResponseDTO {
 
     public String getRejectionReason() { return rejectionReason; }
     public void setRejectionReason(String rejectionReason) { this.rejectionReason = rejectionReason; }
+
+    // ✅ NEW
+    public String getApprovalMessage() { return approvalMessage; }
+    public void setApprovalMessage(String approvalMessage) { this.approvalMessage = approvalMessage; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }

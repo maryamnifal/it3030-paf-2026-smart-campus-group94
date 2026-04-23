@@ -63,12 +63,6 @@ const pillStyle = {
 // ─────────────────────────────────────────────────────────────────────────────
 // ✅ BookingCard — incident card style (compact, top colour border, pill badges)
 //
-//   ┌─────────────────────────────┐  ← coloured top bar (matches status)
-//   │ [Approved]  [LAB]  [date]   │  ← pill badges like "In Progress · MEDIUM"
-//   │ 🔖 LAB#54668                │  ← booking ID like "TICKET #DBD894"
-//   │ **Networking Lab 01**        │  ← bold resource name like ticket description
-//   │ 📍 Block B  🕐 14:00–16:00  │  ← meta row
-//   └─────────────────────────────┘
 // ─────────────────────────────────────────────────────────────────────────────
 function BookingCard({ booking, resource, onClick }) {
   const cfg        = STATUS_CONFIG[booking.status] || STATUS_CONFIG.PENDING;
@@ -111,11 +105,21 @@ function BookingCard({ booking, resource, onClick }) {
               {resource.type.replaceAll("_", " ")}
             </span>
           )}
+          
         </div>
+        
 
         <div style={{ fontSize: "15px", fontWeight: 700, color: "#0f172a", marginBottom: "9px", letterSpacing: "-0.1px" }}>
           {resource?.name || booking.resourceId}
         </div>
+
+         <div style={{ display: "flex", gap: "12px", flexWrap: "wrap", alignItems: "center" }}>
+        {resource?.location && (
+            <span style={{ fontSize: "12px", color: "#64748b" }}>📍 {resource.location}</span>
+          )}
+        
+        </div>
+
 
         
         <div style={{ fontSize: "12px", fontWeight: 700, color: "#94a3b8", letterSpacing: "0.4px", marginBottom: "5px" }}>
@@ -125,9 +129,12 @@ function BookingCard({ booking, resource, onClick }) {
         
         
         <div style={{ display: "flex", gap: "12px", flexWrap: "wrap", alignItems: "center" }}>
-          {resource?.location && (
-            <span style={{ fontSize: "12px", color: "#64748b" }}>📍 {resource.location}</span>
-          )}
+          
+          
+          <span style={{ fontSize: "12px", color: "#64748b" }}>  {booking.date}
+          </span>
+          
+
         </div>
       </div>
     </div>
@@ -270,28 +277,27 @@ export default function BookingsPage() {
       )}
 
       {/* ── Hero — UNCHANGED from Image 2 ── */}
-      <section style={{ position: "relative", overflow: "hidden", background: "linear-gradient(90deg, rgba(9,18,32,0.96) 0%, rgba(15,41,71,0.88) 45%, rgba(22,58,99,0.78) 100%)", padding: "50px 2rem 50px" }}>
+      <section style={{ position: "relative", overflow: "hidden", background: "linear-gradient(90deg, rgba(9,18,32,0.96) 0%, rgba(15,41,71,0.88) 45%, rgba(22,58,99,0.78) 100%)", padding: "70px 2rem 50px" }}>
         <div style={{ position: "absolute", top: "-120px", right: "-100px", width: "360px", height: "360px", borderRadius: "50%", background: "rgba(244,180,0,0.12)", filter: "blur(70px)" }} />
         <div style={{ position: "absolute", bottom: "-100px", left: "-80px", width: "300px", height: "300px", borderRadius: "50%", background: "rgba(255,255,255,0.06)", filter: "blur(70px)" }} />
-
+ 
         <div style={{ position: "relative", zIndex: 2, maxWidth: "1200px", margin: "0 auto" }}>
-          <div style={{ display: "inline-flex", alignItems: "center", gap: "10px", padding: "8px 18px", borderRadius: "999px", background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.88)", fontSize: "12px", fontWeight: 600, letterSpacing: "0.5px", marginBottom: "24px" }}>
+          <div style={{ display: "inline-flex", alignItems: "center", gap: "10px", padding: "8px 18px", borderRadius: "999px", background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.88)", fontSize: "12px", fontWeight: 600, letterSpacing: "0.5px", marginBottom: "24px"}}>
             <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: "var(--primary)", display: "inline-block" }} />
             <b>BOOKINGS & RESERVATIONS</b>
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", flexWrap: "wrap", gap: "20px" }}>
             <div>
-              <h1 style={{ fontSize: "clamp(34px, 5vw, 58px)", lineHeight: 1.05, fontWeight: 800, color: "#fff", letterSpacing: "-1.5px", marginBottom: "14px", maxWidth: "760px" }}>
+              <h1 style={{ fontSize: "clamp(34px, 5vw, 58px)", lineHeight: 1.05, fontWeight: 800, color: "#fff", letterSpacing: "-1.5px", marginBottom: "14px", maxWidth: "1200px" }}>
                 Reserve and track your campus bookings.
               </h1>
-              <p style={{ color: "rgba(255,255,255,0.72)", fontSize: "16px", lineHeight: 1.8, maxWidth: "600px" }}>
+              <p style={{ color: "rgba(255,255,255,0.72)", fontSize: "16px", lineHeight: 1.8, maxWidth: "1200px" }}>
                 Book labs, halls, meeting rooms, and equipment. Track approval status and manage your reservations in one place.
               </p>
             </div>
             <button
               onClick={() => navigate("/bookings/new")}
-              style={{ background: "var(--primary)", color: "#111827", border: "none", padding: "14px 26px", borderRadius: "999px", fontSize: "14px", fontWeight: 700, cursor: "pointer", boxShadow: "0 10px 24px rgba(244,180,0,0.22)", transition: "all 0.25s ease", whiteSpace: "nowrap" }}
-            >
+              style={{ background: "var(--primary)", color: "#111827", border: "none", padding: "14px 26px", borderRadius: "999px", fontSize: "14px", fontWeight: 700, cursor: "pointer", boxShadow: "0 10px 24px rgba(244,180,0,0.22)", transition: "all 0.25s ease", whiteSpace: "nowrap" }}>
               + Book a Resource
             </button>
           </div>
@@ -299,7 +305,7 @@ export default function BookingsPage() {
       </section>
 
       {/* ── Search Card — overlaps hero, UNCHANGED ── */}
-      <section style={{ maxWidth: "1200px", margin: "-20px auto 30px auto", padding: "0 2rem", position: "relative", zIndex: 10 }}>
+      <section style={{ maxWidth: "1200px", margin: "-15px auto 30px auto", padding: "0 2rem", position: "relative", zIndex: 10 }}>
         <div style={{ background: "#fff", borderRadius: "24px", padding: "28px", boxShadow: "0 20px 50px rgba(15,23,42,0.08)", border: "1px solid rgba(15,23,42,0.06)" }}>
           <h2 style={{ fontSize: "22px", fontWeight: 800, color: "var(--text-dark)", marginBottom: "20px" }}>Find your bookings quickly</h2>
           <div style={{ display: "flex", gap: "12px", flexWrap: "wrap", alignItems: "center" }}>
@@ -370,7 +376,7 @@ export default function BookingsPage() {
             ))}
           </div>
 
-          {/* ✅ Cards — incident style, 3-column grid */}
+          {/* ✅ Cards */}
           {loading ? (
             <div style={{ textAlign: "center", padding: "60px 24px", color: "var(--text-light)", fontSize: "16px" }}>Loading your bookings...</div>
           ) : filtered.length === 0 ? (
@@ -382,8 +388,8 @@ export default function BookingsPage() {
               </div>
             </div>
           ) : (
-            // ✅ Same 3-col grid as incident cards
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(500px, 1fr))", gap: "16px" }}>
+            // ✅ Same 3-col grid 
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))", gap: "16px" }}>
               {filtered.map((b) => (
                 <BookingCard
                   key={b.id}

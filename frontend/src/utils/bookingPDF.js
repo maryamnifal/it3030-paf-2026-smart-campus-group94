@@ -197,6 +197,66 @@ export function downloadBookingConfirmation(booking, resourceName, resourceDetai
   doc.text(noteLines, 20, y + 14);
   y += 32;
 
+  // ── ✅ Admin approval message (only shown if admin wrote one) ──
+  if (booking.approvalMessage && booking.approvalMessage.trim() !== "") {
+    // Strip emojis — jsPDF built-in fonts can't render them (shows garbled chars)
+    const cleanMsg = booking.approvalMessage
+      .replace(/[\u{1F300}-\u{1FFFF}]/gu, "")  // remove emojis
+      .replace(/[\u{2600}-\u{26FF}]/gu, "")     // remove misc symbols
+      .replace(/[\u{2700}-\u{27BF}]/gu, "")     // remove dingbats
+      .trim();
+ 
+    if (cleanMsg) {
+      // Wrap text to fit inside box width (170mm usable)
+      const msgLines = doc.splitTextToSize(`"${cleanMsg}"`, 168);
+      // Box height: top label (10) + lines (5 each) + bottom padding (8)
+      const msgBoxHeight = 10 + msgLines.length * 5 + 8;
+ 
+      doc.setFillColor("#f0fdf4");
+      doc.setDrawColor("#86efac");
+      doc.setLineWidth(0.4);
+      doc.roundedRect(14, y, 182, msgBoxHeight, 2, 2, "FD");
+ 
+      // Green left accent bar — full height of box
+      doc.setFillColor("#16a34a");
+      doc.rect(14, y, 3, msgBoxHeight, "F");
+ 
+      // Label
+      doc.setTextColor("#166534");
+      doc.setFontSize(8);
+      doc.setFont("helvetica", "bold");
+      doc.text("MESSAGE FROM ADMIN", 22, y + 7);
+ 
+      // Message text — starts at y+13, each line 5mm apart
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(9);
+      doc.text(msgLines, 22, y + 13);
+ 
+      y += msgBoxHeight + 6;
+    }
+  }
+
+  // ── ✅ Auto check-in confirmation message ──
+  if (booking.status === "CHECKED_IN") {
+    const checkinMsg = "Your attendance has been confirmed. Thank you for checking in!";
+    const checkinLines = doc.splitTextToSize(checkinMsg, 168);
+    const checkinBoxHeight = 10 + checkinLines.length * 5 + 8;
+ 
+    doc.setFillColor("#eff6ff");
+    doc.setDrawColor("#93c5fd");
+    doc.setLineWidth(0.4);
+    doc.roundedRect(14, y, 182, checkinBoxHeight, 2, 2, "FD");
+    // Blue left accent bar
+    doc.setFillColor("#3b82f6");
+    doc.rect(14, y, 3, checkinBoxHeight, "F");
+    doc.setTextColor("#1e40af");
+    doc.setFontSize(8); doc.setFont("helvetica", "bold");
+    doc.text("ATTENDANCE STATUS", 22, y + 7);
+    doc.setFont("helvetica", "normal"); doc.setFontSize(9);
+    doc.text(checkinLines, 22, y + 13);
+    y += checkinBoxHeight + 6;
+  }
+
   // ── Generated timestamp ──
   doc.setFontSize(8); doc.setTextColor(MUTED); doc.setFont("helvetica", "italic");
   doc.text(`This document was auto-generated on ${new Date().toLocaleString()} by the UniSphere Smart Campus system.`, 105, y, { align: "center" });

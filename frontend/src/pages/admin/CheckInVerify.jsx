@@ -297,16 +297,28 @@ export default function CheckInVerify() {
     <div style={{ minHeight: "100vh", background: "linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%)", paddingBottom: "80px" }}>
 
       {/* ── Hero ── */}
-      <section style={{ position: "relative", overflow: "hidden", background: "linear-gradient(90deg, rgba(9,18,32,0.96) 0%, rgba(15,41,71,0.88) 45%, rgba(22,58,99,0.78) 100%)", padding: "80px 2rem 50px" }}>
+      <section style={{ position: "relative", overflow: "hidden", background: "linear-gradient(90deg, rgba(9,18,32,0.96) 0%, rgba(15,41,71,0.88) 45%, rgba(22,58,99,0.78) 100%)", padding: "50px 2rem 50px" }}>
         <div style={{ position: "absolute", top: "-100px", right: "-80px", width: "300px", height: "300px", borderRadius: "50%", background: "rgba(244,180,0,0.12)", filter: "blur(70px)" }} />
         <div style={{ position: "absolute", bottom: "-80px", left: "-60px", width: "240px", height: "240px", borderRadius: "50%", background: "rgba(255,255,255,0.06)", filter: "blur(70px)" }} />
 
        <div style={{ ...container, position: "relative", zIndex: 2 }}>
           
+        {/* ✅ Back button */}
+          <button
+            onClick={() => navigate("/admin/bookings")}
+            style={{ background: "transparent", border: "none", color: "#94a3b8", cursor: "pointer", fontSize: "14px", marginBottom: "20px", padding: 0, fontFamily: "inherit", display: "flex", alignItems: "center", gap: "6px" }}
+            onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.18)")}
+            onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.10)")}
+          >
+            ← Back to Booking Requests
+          </button>
+
           <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "7px 16px", borderRadius: "999px", background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.88)", fontSize: "12px", fontWeight: 600, marginBottom: "16px" }}>
             <span style={{ width: "8px", height: "8px", borderRadius: "50%", background: "var(--primary, #f4b400)", display: "inline-block" }} />
             <b>BOOKING CHECK-IN</b>
           </div>
+
+          
 
           <h1 style={{ fontSize: "clamp(26px, 5vw, 44px)", fontWeight: 800, color: "#fff", letterSpacing: "-1px", marginBottom: "10px" }}>
             QR Check-In Verification
@@ -315,26 +327,11 @@ export default function CheckInVerify() {
             Scan the user's QR code with your camera, or enter the 8-character booking code manually to verify attendance.
             
           </p>
-
-          {/* ✅ Back button */}
-          <button
-            onClick={() => navigate("/admin/bookings")}
-            style={{
-              display: "inline-flex", alignItems: "center", gap: "7px",
-              background: "rgba(255,255,255,0.10)", border: "1px solid rgba(255,255,255,0.18)",
-              borderRadius: "999px", padding: "7px 16px",
-              color: "rgba(255,255,255,0.88)", fontSize: "13px", fontWeight: 600,
-              cursor: "pointer", margintop: "20px", fontFamily: "inherit",
-              transition: "background 0.15s",
-            }}
-            onMouseEnter={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.18)")}
-            onMouseLeave={(e) => (e.currentTarget.style.background = "rgba(255,255,255,0.10)")}
-          >
-            ← Back to Booking Requests
-          </button>
-
         </div>
+        
       </section>
+
+      
 
       <div style={{ ...container, marginTop: "-24px", position: "relative", zIndex: 3 }}>
 

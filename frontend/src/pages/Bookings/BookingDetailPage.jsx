@@ -6,7 +6,6 @@ import QRCodeDisplay from "../../components/QRCodeDisplay";
 import TimeSlotSelector from "../../components/TimeSlotSelector";
 import { downloadBookingConfirmation, generateBookingId } from "../../utils/bookingPDF.js";
 
-// ─── Status config — light colours like facilities page badges ────────────────
 const STATUS_CONFIG = {
   PENDING:    { label: "Pending",    bg: "#fef9c3", color: "#854d0e",  border: "#fde68a" },
   APPROVED:   { label: "Approved",   bg: "#dcfce7", color: "#166534",  border: "#86efac" },
@@ -133,7 +132,6 @@ export default function BookingDetailPage() {
     catch { showToast("Failed to cancel."); }
   };
 
-  // ── Loading / not found states — light bg ──
   if (loading) return (
     <div style={{ minHeight: "100vh", background: "#f8fafc", display: "flex", alignItems: "center", justifyContent: "center", color: "#64748b", fontSize: "15px" }}>
       Loading booking...
@@ -151,7 +149,6 @@ export default function BookingDetailPage() {
   const imageUrl   = resource?.imageUrl || resource?.images?.[0] || null;
 
   return (
-    // ✅ LIGHT background — like Facilities detail page (#f8fafc)
     <div style={{ minHeight: "100vh", background: "#f8fafc", paddingBottom: "80px" }}>
 
       {toast && (
@@ -164,44 +161,36 @@ export default function BookingDetailPage() {
           onClose={() => setEditing(false)} />
       )}
 
-      {/* ── Header — like Facilities detail page ── */}
-      <div style={{background: "linear-gradient(90deg, rgba(9,18,32,0.96) 0%, rgba(15,41,71,0.88) 45%, rgba(22,58,99,0.78) 100%)", borderBottom: "1px solid rgba(15,23,42,0.07)", padding: "32px 2rem 28px" }}>
-        <div style={{ maxWidth: "900px", margin: "0 auto" }}>
+      {/* ── Header ── */}
+      <div style={{ background: "linear-gradient(90deg, rgba(9,18,32,0.96) 0%, rgba(15,41,71,0.88) 45%, rgba(22,58,99,0.78) 100%)", borderBottom: "1px solid rgba(15,23,42,0.07)", padding: "32px 2rem 28px" }}>
+        <div style={{ maxWidth: "1000px", margin: "0 auto" }}>
 
-          {/* Back link */}
           <button onClick={() => navigate("/bookings")}
-            style={{ background: "transparent", border: "none", color: "#64748b", cursor: "pointer", fontSize: "14px", marginBottom: "20px", padding: 0, fontFamily: "inherit", display: "flex", alignItems: "center", gap: "6px" }}>
+            style={{ background: "transparent", border: "none", color: "#94a3b8", cursor: "pointer", fontSize: "14px", marginBottom: "20px", padding: 0, fontFamily: "inherit", display: "flex", alignItems: "center", gap: "6px" }}>
             ← Back to Bookings
           </button>
 
-          {/* Label pill + status badge row */}
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: "16px", marginBottom: "12px" }}>
             <div style={{ display: "inline-flex", alignItems: "center", gap: "8px", padding: "6px 14px", borderRadius: "999px", background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.88)", fontSize: "12px", fontWeight: 700 }}>
               <span style={{ width: "7px", height: "7px", borderRadius: "50%", background: "#f4b400", display: "inline-block" }} />
-              <b>BOOKING DETAILS</b>
+              BOOKING DETAILS
             </div>
 
-            {/* Download PDF */}
-              {booking.status === "APPROVED" && (
-                
-                <button onClick={() => downloadBookingConfirmation(booking, resource?.name, resource)}
-                  style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.88)", borderRadius: "999px", padding: "7px 20px", fontSize: "14px", fontWeight: 700 }}
-                  onMouseEnter={e => (e.currentTarget.style.background = "#f1f5f9")}
-                  onMouseLeave={e => (e.currentTarget.style.background = "rgba(255,255,255,0.08)")}>
-                   ↓ Download RECEIPT
-                </button>
-              )}
-            
+            {booking.status === "APPROVED" && (
+              <button onClick={() => downloadBookingConfirmation(booking, resource?.name, resource)}
+                style={{ background: "rgba(255,255,255,0.08)", border: "1px solid rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.88)", borderRadius: "999px", padding: "7px 20px", fontSize: "14px", fontWeight: 700, cursor: "pointer" }}
+                onMouseEnter={e => (e.currentTarget.style.background = "rgba(255,255,255,0.18)")}
+                onMouseLeave={e => (e.currentTarget.style.background = "rgba(255,255,255,0.08)")}>
+                ↓ Download RECEIPT
+              </button>
+            )}
           </div>
 
-          {/* Resource name — big heading */}
-          <h1 style={{ fontSize: "clamp(24px, 4vw, 38px)", fontWeight: 900, color: "#cfcfcfce", letterSpacing: "-0.8px", marginBottom: "12px", lineHeight: 1.15 }}>
+          <h1 style={{ fontSize: "clamp(24px, 4vw, 38px)", fontWeight: 900, color: "#fff", letterSpacing: "-0.8px", marginBottom: "12px", lineHeight: 1.15 }}>
             {resource?.name || booking.resourceId}
           </h1>
 
-          {/* Subtitle meta badges — type · ID · date */}
           <div style={{ display: "flex", gap: "10px", flexWrap: "wrap", alignItems: "center" }}>
-            {/* Status badge — top right like ACTIVE badge in facilities */}
             <span style={{ background: statusCfg.bg, color: statusCfg.color, border: `1px solid ${statusCfg.border}`, borderRadius: "999px", padding: "7px 20px", fontSize: "14px", fontWeight: 700 }}>
               {statusCfg.label}
             </span>
@@ -213,18 +202,17 @@ export default function BookingDetailPage() {
             <span style={{ background: "rgba(255,255,255,0.08)", color: "#f3f3f5", borderRadius: "8px", padding: "5px 12px", fontSize: "13px", fontWeight: 700, fontFamily: "monospace", letterSpacing: "0.8px" }}>
               🔖 {readableId}
             </span>
-            
           </div>
         </div>
       </div>
 
-      {/* ── Content grid — same structure as facilities detail ── */}
+      {/* ── Content grid ── */}
       <div style={{ maxWidth: "1000px", margin: "32px auto 0", padding: "0 2rem", display: "grid", gridTemplateColumns: "1fr 300px", gap: "24px", alignItems: "start" }}>
 
         {/* LEFT column */}
         <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
 
-          {/* Resource image — full width like facilities */}
+          {/* Resource image */}
           {imageUrl && (
             <div style={{ borderRadius: "20px", overflow: "hidden", aspectRatio: "16/8" }}>
               <img src={imageUrl} alt={resource?.name} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} onError={e => (e.target.style.display = "none")} />
@@ -236,6 +224,7 @@ export default function BookingDetailPage() {
             <div style={{ display: "inline-block", background: "#fef3c7", color: "#92400e", fontSize: "11px", fontWeight: 700, letterSpacing: "0.8px", textTransform: "uppercase", padding: "5px 14px", borderRadius: "999px", marginBottom: "20px" }}>
               Booking Details
             </div>
+
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px" }}>
               {[
                 { label: "Requested By", value: booking.userName || booking.userId },
@@ -252,24 +241,53 @@ export default function BookingDetailPage() {
               ))}
             </div>
 
-            {/* Rejection reason */}
+            {/* ✅ Rejection reason */}
             {booking.status === "REJECTED" && booking.rejectionReason && (
               <div style={{ marginTop: "20px", background: "#fee2e2", border: "1px solid #fca5a5", borderLeft: "4px solid #dc2626", borderRadius: "12px", padding: "14px 16px" }}>
                 <div style={{ fontSize: "11px", fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.7px", marginBottom: "6px" }}>Rejection Reason</div>
                 <div style={{ fontSize: "14px", color: "#991b1b", lineHeight: 1.6 }}>{booking.rejectionReason}</div>
               </div>
             )}
+
+            {/* ✅ Approval message from admin — only shows if admin typed one */}
+            {booking.status === "APPROVED" && booking.approvalMessage && (
+              <div style={{ marginTop: "20px", background: "#f0fdf4", border: "1px solid #86efac", borderLeft: "4px solid #16a34a", borderRadius: "12px", padding: "14px 16px" }}>
+                <div style={{ fontSize: "11px", fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.7px", marginBottom: "6px" }}>
+                  Message from Admin
+                </div>
+                <div style={{ fontSize: "14px", color: "#166534", lineHeight: 1.6 }}>
+                  💬 {booking.approvalMessage}
+                </div>
+              </div>
+            )}
+
+            {/* ✅ Auto check-in confirmation message */}
+            {booking.status === "CHECKED_IN" && (
+              <div style={{ marginTop: "20px", background: "#eff6ff", border: "1px solid #93c5fd", borderLeft: "4px solid #3b82f6", borderRadius: "12px", padding: "14px 16px" }}>
+                <div style={{ fontSize: "11px", fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.7px", marginBottom: "6px" }}>
+                  Attendance Status
+                </div>
+                <div style={{ fontSize: "14px", color: "#1e40af", lineHeight: 1.6 }}>
+                  ✅ Your attendance has been confirmed. Thank you for checking in!
+                </div>
+              </div>
+            )}
+
           </div>
         </div>
 
         {/* RIGHT column */}
         <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
 
-          {/* Resource information — like facilities right panel */}
+          {/* Resource information */}
           {resource && (
             <div style={{ ...card, padding: "24px" }}>
               <div style={{ fontSize: "18px", fontWeight: 800, color: "#0f172a", marginBottom: "20px" }}>Resource Information</div>
-              
+              {imageUrl && (
+                <div style={{ borderRadius: "12px", overflow: "hidden", marginBottom: "16px", aspectRatio: "16/9" }}>
+                  <img src={imageUrl} alt={resource.name} style={{ width: "100%", height: "100%", objectFit: "cover" }} onError={e => (e.target.style.display = "none")} />
+                </div>
+              )}
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
                 {[
                   { label: "Type",     value: resource.type?.replaceAll("_", " ") || "—" },
@@ -286,7 +304,7 @@ export default function BookingDetailPage() {
             </div>
           )}
 
-          {/* Actions — like facilities "Book Now" panel */}
+          {/* Actions */}
           <div style={{ ...card, padding: "24px" }}>
             <div style={{ fontSize: "18px", fontWeight: 800, color: "#0f172a", marginBottom: "18px" }}>Actions</div>
             <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>

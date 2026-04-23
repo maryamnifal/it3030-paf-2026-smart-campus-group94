@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { getAllBookings, approveBooking, rejectBooking, deleteBooking } from "../../api/bookingApi";
 import { getAllResources } from "../../api/resourceApi";
-import { downloadBookingConfirmation, downloadBookingSummaryReport, generateBookingId } from "../../utils/bookingPDF.js";
+import { downloadBookingConfirmation, downloadBookingSummaryReport, generateBookingId } from "../../utils/bookingPDF";
 
 const card = { background: "#fff", border: "1px solid rgba(15,23,42,0.08)", borderRadius: "20px", boxShadow: "0 4px 20px rgba(15,23,42,0.05)" };
 
@@ -36,6 +36,62 @@ function RejectModal({ onConfirm, onClose }) {
   );
 }
 
+// ─── Approve Modal — optional message, same style as RejectModal ─────────────
+function ApproveModal({ booking, resource, onConfirm, onClose }) {
+  const [message, setMessage] = useState("");
+
+  return (
+    <div style={{ position: "fixed", inset: 0, zIndex: 9999, background: "rgba(9,18,32,0.6)", display: "flex", alignItems: "center", justifyContent: "center", padding: "20px" }}>
+      <div style={{ ...card, padding: "32px", width: "480px", maxWidth: "100%" }}>
+
+        {/* Header */}
+        <div style={{ display: "flex", alignItems: "center", gap: "12px", marginBottom: "8px" }}>
+          <div style={{ width: "40px", height: "40px", borderRadius: "50%", background: "#dcfce7", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "18px", flexShrink: 0 }}>✓</div>
+          <div style={{ fontSize: "18px", fontWeight: 800, color: "#0f172a" }}>Approve Booking</div>
+        </div>
+
+        {/* Booking summary */}
+        <div style={{ background: "#f8fafc", borderRadius: "12px", padding: "14px 16px", marginBottom: "20px" }}>
+          <div style={{ fontSize: "15px", fontWeight: 700, color: "#0f172a", marginBottom: "4px" }}>{resource?.name || booking.resourceId}</div>
+          <div style={{ fontSize: "13px", color: "#64748b" }}>
+            👤 {booking.userName || booking.userId} · 📅 {booking.date} · 🕐 {booking.startTime?.slice(0,5)} – {booking.endTime?.slice(0,5)}
+          </div>
+        </div>
+
+        {/* Optional message */}
+        <p style={{ color: "#64748b", fontSize: "14px", lineHeight: 1.6, marginBottom: "10px" }}>
+          Add an optional message for the user: <span style={{ color: "#94a3b8", fontSize: "12px" }}>(not required)</span>
+        </p>
+        <textarea
+          value={message}
+          onChange={e => setMessage(e.target.value)}
+          placeholder="e.g. Your booking is confirmed. Please arrive 5 minutes early..."
+          rows={3}
+          style={{ width: "100%", padding: "12px 14px", borderRadius: "12px", border: "1px solid rgba(15,23,42,0.1)", fontSize: "14px", outline: "none", resize: "vertical", boxSizing: "border-box", fontFamily: "inherit", color: "#0f172a" }}
+        />
+
+        {/* Buttons */}
+        <div style={{ display: "flex", gap: "10px", marginTop: "18px", justifyContent: "flex-end" }}>
+          <button
+            onClick={onClose}
+            style={{ background: "#fff", color: "#64748b", border: "1px solid rgba(15,23,42,0.1)", padding: "11px 22px", borderRadius: "999px", fontSize: "14px", fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}
+          >
+            Cancel
+          </button>
+          <button
+            onClick={() => onConfirm(message)}
+            style={{ background: "#16a34a", color: "#fff", border: "none", padding: "11px 24px", borderRadius: "999px", fontSize: "14px", fontWeight: 700, cursor: "pointer", fontFamily: "inherit" }}
+            onMouseEnter={e => (e.currentTarget.style.background = "#15803d")}
+            onMouseLeave={e => (e.currentTarget.style.background = "#16a34a")}
+          >
+            ✓ Confirm Approval
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function BookingListCard({ booking, resource, onClick }) {
   return (
     <div onClick={onClick} style={{ ...card, padding: "20px 24px", cursor: "pointer", transition: "all 0.2s", display: "flex", alignItems: "center", justifyContent: "space-between", gap: "16px" }}
@@ -44,9 +100,11 @@ function BookingListCard({ booking, resource, onClick }) {
       <div style={{ flex: 1, minWidth: 0 }}>
         <div style={{ fontSize: "11px", fontWeight: 700, color: "#94a3b8", textTransform: "uppercase", letterSpacing: "0.7px", marginBottom: "3px" }}>{resource?.type?.replaceAll("_", " ") || "Resource"}</div>
         <div style={{ fontSize: "16px", fontWeight: 700, color: "#0f172a", marginBottom: "6px", whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{resource?.name || booking.resourceId}</div>
-        <div style={{ display: "flex", gap: "14px", flexWrap: "wrap" }}>
-          <span style={{ fontSize: "13px", color: "#64748b" }}>👤 {booking.userName || booking.userId}</span>
-         </div>
+        
+
+         <div style={{ fontSize: "13px", color: "#64748b" }}>
+            👤 {booking.userName || booking.userId} · 📅 {booking.date} · 🕐 {booking.startTime?.slice(0,5)} – {booking.endTime?.slice(0,5)}
+          </div>
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: "12px", flexShrink: 0 }}>
         <StatusBadge status={booking.status} />
@@ -132,6 +190,7 @@ export default function BookingRequests() {
   const [search, setSearch]             = useState("");
   const [selected, setSelected]         = useState(null);
   const [rejectTarget, setRejectTarget] = useState(null);
+  const [approveTarget, setApproveTarget] = useState(null); // ✅ NEW
   const [toast, setToast]               = useState({ msg: "", type: "success" });
 
   const showToast = (msg, type = "success") => { setToast({ msg, type }); setTimeout(() => setToast({ msg: "", type: "success" }), 3500); };
@@ -143,7 +202,22 @@ export default function BookingRequests() {
 
   useEffect(() => { fetchData(); }, []);
 
-  const handleApprove = async (id) => { try { await approveBooking(id); showToast("Booking approved."); await fetchData(); setSelected(p => p ? { ...p, status: "APPROVED" } : null); } catch { showToast("Failed to approve.", "error"); } };
+  // ✅ Now opens ApproveModal instead of approving directly
+  const handleApprove = (id) => {
+    const booking = bookings.find(b => b.id === id);
+    setApproveTarget(booking);
+  };
+
+  // ✅ Called when admin clicks "Confirm Approval" in the modal
+  const handleApproveConfirm = async (message) => {
+  try {
+    await approveBooking(approveTarget.id, message); // ✅ send message
+    showToast("Booking approved." + (message ? " Message sent to user." : ""));
+    setApproveTarget(null);
+    await fetchData();
+    setSelected(p => p ? { ...p, status: "APPROVED" } : null);
+  } catch { showToast("Failed to approve.", "error"); }
+};
   const handleRejectConfirm = async (reason) => { try { await rejectBooking(rejectTarget.id, reason); showToast("Booking rejected."); setRejectTarget(null); await fetchData(); setSelected(p => p ? { ...p, status: "REJECTED", rejectionReason: reason } : null); } catch { showToast("Failed to reject.", "error"); } };
   const handleDelete = async (id) => { if (!window.confirm("Permanently delete?")) return; try { await deleteBooking(id); showToast("Deleted."); setSelected(null); fetchData(); } catch { showToast("Failed to delete.", "error"); } };
 
@@ -160,11 +234,19 @@ export default function BookingRequests() {
     <div style={{ minHeight: "100vh", background: "linear-gradient(180deg, #f8fafc 0%, #eef2f7 100%)", paddingBottom: "80px" }}>
       {toast.msg && <div style={{ position: "fixed", top: 24, right: 24, zIndex: 9999, background: "#fff", border: `1px solid ${toast.type === "error" ? "rgba(220,38,38,0.3)" : "rgba(15,23,42,0.1)"}`, borderRadius: "14px", padding: "13px 20px", color: toast.type === "error" ? "#991b1b" : "#0f172a", fontSize: "14px", boxShadow: "0 8px 24px rgba(15,23,42,0.08)" }}>{toast.type === "error" ? "✕ " : "✓ "}{toast.msg}</div>}
       {rejectTarget && <RejectModal onConfirm={handleRejectConfirm} onClose={() => setRejectTarget(null)} />}
+      {approveTarget && (
+        <ApproveModal
+          booking={approveTarget}
+          resource={resources.find(r => r.id === approveTarget.resourceId)}
+          onConfirm={handleApproveConfirm}
+          onClose={() => setApproveTarget(null)}
+        />
+      )}
 
       {/* ══ DYNAMIC HERO ══ */}
       {selected ? (
         /* ── DETAIL HERO — booking name + ID + resource image thumbnail + badges ── */
-        <section style={{ position: "relative", overflow: "hidden", background: "linear-gradient(90deg, rgba(9,18,32,0.96) 0%, rgba(15,41,71,0.88) 45%, rgba(22,58,99,0.78) 100%)", padding: "90px 2rem 50px" }}>
+        <section style={{ position: "relative", overflow: "hidden", background: "linear-gradient(90deg, rgba(9,18,32,0.96) 0%, rgba(15,41,71,0.88) 45%, rgba(22,58,99,0.78) 100%)", padding: "60px 2rem 50px" }}>
           <div style={{ position: "absolute", top: "-100px", right: "-80px", width: "300px", height: "300px", borderRadius: "50%", background: "rgba(244,180,0,0.12)", filter: "blur(70px)" }} />
           <div style={{ ...container, position: "relative", zIndex: 2 }}>
             <button onClick={() => setSelected(null)} style={{ background: "transparent", border: "none", color: "#94a3b8", cursor: "pointer", fontSize: "14px", marginBottom: "20px", padding: 0, fontFamily: "inherit", display: "flex", alignItems: "center", gap: "6px" }}>← Back to Booking Requests</button>
@@ -202,7 +284,7 @@ export default function BookingRequests() {
         </section>
       ) : (
         /* ── LIST HERO ── */
-        <section style={{ position: "relative", overflow: "hidden", background: "linear-gradient(90deg, rgba(9,18,32,0.96) 0%, rgba(15,41,71,0.88) 45%, rgba(22,58,99,0.78) 100%)", padding: "90px 2rem 70px" }}>
+        <section style={{ position: "relative", overflow: "hidden", background: "linear-gradient(90deg, rgba(9,18,32,0.96) 0%, rgba(15,41,71,0.88) 45%, rgba(22,58,99,0.78) 100%)", padding: "60px 2rem 70px" }}>
           <div style={{ position: "absolute", top: "-120px", right: "-100px", width: "360px", height: "360px", borderRadius: "50%", background: "rgba(244,180,0,0.12)", filter: "blur(70px)" }} />
           <div style={{ position: "absolute", bottom: "-100px", left: "-80px", width: "300px", height: "300px", borderRadius: "50%", background: "rgba(255,255,255,0.06)", filter: "blur(70px)" }} />
           <div style={{ ...container, position: "relative", zIndex: 2 }}>
@@ -235,7 +317,7 @@ export default function BookingRequests() {
       )}
 
       {/* Content */}
-      <div style={{ ...container, marginTop: selected ? "32px" : "-32px", position: "relative", zIndex: 3, paddingTop: 0, paddingBottom: "40px" }}>
+      <div style={{ ...container, marginTop: selected ? "32px" : "-32px", position: "relative", zIndex: 3, paddingTop: 0, paddingBottom: "40px"}}>
         {selected ? (
           <BookingDetailBody booking={selected} resource={selectedResource} onApprove={handleApprove} onReject={setRejectTarget} onDelete={handleDelete} />
         ) : (
@@ -244,7 +326,7 @@ export default function BookingRequests() {
 
               <input type="text" placeholder="Search by user, resource, or purpose..." value={search} onChange={e => setSearch(e.target.value)} style={{ width: "100%", maxWidth: "360px", padding: "10px 14px", borderRadius: "10px", border: "1px solid rgba(15,23,42,0.1)", fontSize: "14px", outline: "none", marginBottom: "14px", boxSizing: "border-box", fontFamily: "inherit" }} />
               <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-                {["ALL", "PENDING", "APPROVED", "REJECTED", "CANCELLED"].map(s => (
+                {["ALL", "PENDING", "APPROVED", "REJECTED", "CANCELLED", "CHECKED_IN"].map(s => (
                   <button key={s} onClick={() => setStatusFilter(s)} style={{ background: statusFilter === s ? "var(--primary,#f4b400)" : "#fff", color: statusFilter === s ? "#111827" : "#64748b", border: statusFilter === s ? "none" : "1px solid rgba(15,23,42,0.08)", padding: "8px 16px", borderRadius: "999px", fontSize: "13px", fontWeight: 600, cursor: "pointer", fontFamily: "inherit" }}>
                     {s === "ALL" ? "All" : s.charAt(0) + s.slice(1).toLowerCase()} ({counts[s] ?? 0})
                   </button>
@@ -258,6 +340,8 @@ export default function BookingRequests() {
           </>
         )}
       </div>
+
+      
       
     </div>
 
