@@ -12,6 +12,8 @@ import AdminDashboard from "./pages/admin/AdminDashboard";
 import UserDashboard from "./pages/user/UserDashboard";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import BookingsPage from "./pages/Bookings/BookingsPage";
+import CreateBookingPage from "./pages/Bookings/CreateBookingPage";
+import BookingDetailPage from "./pages/Bookings/BookingDetailPage"; // ✅ NEW
 import BookingRequests from "./pages/admin/BookingRequests";
 import CheckInVerify from "./pages/admin/CheckInVerify";
 import TicketListPage from "./pages/incidents/TicketListPage";
@@ -75,7 +77,35 @@ function AppLayout() {
             }
           />
 
+          {/* ✅ NEW — separate clean page for creating a booking */}
+          <Route 
+            path="/bookings/new" 
+            element={
+             <ProtectedRoute allowedRole="USER">
+               <CreateBookingPage />
+             </ProtectedRoute>
+           } 
+          />
+
+          {/* ✅ NEW — booking detail page like ticket detail */}
+          <Route 
+            path="/bookings/:id" 
+            element={
+              <ProtectedRoute allowedRole="USER">
+                <BookingDetailPage />
+              </ProtectedRoute>
+            } 
+          />
+
           {/* ✅ NOTIFICATION PREFERENCES - USER only */}
+          <Route
+            path="/preferences"
+            element={
+              <ProtectedRoute allowedRole="USER">
+                <NotificationPreferences />
+              </ProtectedRoute>
+            }
+          />
           <Route
             path="/preferences"
             element={
