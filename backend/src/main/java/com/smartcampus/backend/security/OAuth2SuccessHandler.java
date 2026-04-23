@@ -34,21 +34,47 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
 
         OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
 
-        String email = oAuth2User.getAttribute("email");
-        String name = oAuth2User.getAttribute("name");
-        String picture = oAuth2User.getAttribute("picture");
+        // ✅ Detect provider first
+        String provider = request.getRequestURI().contains("github") ? "github" : "google";
 
-        // fallback values (important for GitHub)
+        // ✅ Get email — GitHub sometimes returns null email
+        String email = oAuth2User.getAttribute("email");
+
+        // ✅ GitHub fallback — use login as email if email is null
+        if (email == null || email.isBlank()) {
+            String login = oAuth2User.getAttribute("login"); // GitHub username
+            if (login != null) {
+                email = login + "@github.com"; // create fake email from username
+            }
+        }
+
+        // ✅ Get name — GitHub sometimes returns null name
+        String name = oAuth2User.getAttribute("name");
         if (name == null || name.isBlank()) {
-            name = email;
+            // Try GitHub login (username) as fallback
+            name = oAuth2User.getAttribute("login");
+        }
+        if (name == null || name.isBlank()) {
+            name = email; // last resort
+        }
+
+        // ✅ Get picture
+        String picture = oAuth2User.getAttribute("picture");
+        // GitHub uses avatar_url instead of picture
+        if (picture == null || picture.isBlank()) {
+            picture = oAuth2User.getAttribute("avatar_url");
         }
         if (picture == null) {
             picture = "";
         }
 
-        // ✅ FIX: detect provider dynamically
-        String provider = request.getRequestURI().contains("github") ? "github" : "google";
+        // ✅ Safety check — if email still null something is very wrong
+        if (email == null || email.isBlank()) {
+            response.sendRedirect(frontendUrl + "/login?error=email_not_found");
+            return;
+        }
 
+        // ✅ Save or update user
         Optional<User> existingUser = userRepository.findByEmail(email);
         User user;
 
@@ -63,8 +89,8 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
                     .email(email)
                     .name(name)
                     .picture(picture)
-                    .role("USER") // default role
-                    .provider(provider) // ✅ FIXED
+                    .role("USER")
+                    .provider(provider)
                     .createdAt(LocalDateTime.now())
                     .lastLoginAt(LocalDateTime.now())
                     .build();
@@ -72,10 +98,10 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
 
         userRepository.save(user);
 
-        // Generate JWT
+        // ✅ Generate JWT
         String token = jwtUtil.generateToken(email, user.getRole(), name);
 
-        // ✅ KEEP THIS (AuthCallback depends on it)
+        // ✅ Redirect to frontend
         response.sendRedirect(
                 frontendUrl
                         + "/auth/callback?token=" + URLEncoder.encode(token, StandardCharsets.UTF_8)
