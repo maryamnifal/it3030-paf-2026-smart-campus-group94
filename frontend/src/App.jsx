@@ -13,12 +13,14 @@ import UserDashboard from "./pages/user/UserDashboard";
 import ProtectedRoute from "./routes/ProtectedRoute";
 import BookingsPage from "./pages/Bookings/BookingsPage";
 import CreateBookingPage from "./pages/Bookings/CreateBookingPage";
-import BookingDetailPage from "./pages/Bookings/BookingDetailPage"; // ✅ NEW
+import BookingDetailPage from "./pages/Bookings/BookingDetailPage";
 import BookingRequests from "./pages/admin/BookingRequests";
-import CheckInVerify from "./pages/admin/CheckInVerify"; // ✅ NEW
+import CheckInVerify from "./pages/admin/CheckInVerify";
 import TicketListPage from "./pages/incidents/TicketListPage";
 import TicketDetailPage from "./pages/incidents/TicketDetailPage";
 import CreateTicketPage from "./pages/incidents/CreateTicketPage";
+import NotificationPreferences from "./pages/notifications/NotificationPreferences";
+import Profile from "./pages/user/Profile";
 
 function AppLayout() {
   return (
@@ -27,10 +29,12 @@ function AppLayout() {
 
       <main style={{ flex: 1 }}>
         <Routes>
+          {/* Public */}
           <Route path="/" element={<Home />} />
           <Route path="/auth/callback" element={<AuthCallback />} />
           <Route path="/login" element={<LoginPage />} />
 
+          {/* Dashboards */}
           <Route
             path="/admin/dashboard"
             element={
@@ -49,6 +53,7 @@ function AppLayout() {
             }
           />
 
+          {/* Facilities */}
           <Route path="/facilities" element={<ResourceList />} />
 
           <Route
@@ -71,6 +76,7 @@ function AppLayout() {
 
           <Route path="/facilities/:id" element={<ResourceDetail />} />
 
+          {/* Bookings */}
           <Route
             path="/bookings"
             element={
@@ -80,21 +86,23 @@ function AppLayout() {
             }
           />
 
-          {/* ✅ NEW — separate clean page for creating a booking */}
-          <Route 
-            path="/bookings/new" 
+          <Route
+            path="/bookings/new"
             element={
               <ProtectedRoute allowedRole="USER">
                 <CreateBookingPage />
               </ProtectedRoute>
-            } 
+            }
           />
 
-          {/* ✅ NEW — booking detail page like ticket detail */}
-          <Route path="/bookings/:id" element={<ProtectedRoute allowedRole="USER"><BookingDetailPage /></ProtectedRoute>} />
- 
-            
- 
+          <Route
+            path="/bookings/:id"
+            element={
+              <ProtectedRoute allowedRole="USER">
+                <BookingDetailPage />
+              </ProtectedRoute>
+            }
+          />
 
           <Route
             path="/admin/bookings"
@@ -105,7 +113,6 @@ function AppLayout() {
             }
           />
 
-          
           <Route
             path="/admin/checkin"
             element={
@@ -115,6 +122,7 @@ function AppLayout() {
             }
           />
 
+          {/* Incidents */}
           <Route
             path="/incidents"
             element={
@@ -142,11 +150,31 @@ function AppLayout() {
             }
           />
 
-         <Route
+          {/* Notifications */}
+          <Route
             path="/notifications"
             element={
               <ProtectedRoute>
                 <Notifications />
+              </ProtectedRoute>
+            }
+          />
+
+          {/* ✅ FIXED ROUTES */}
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <Profile />
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/preferences"
+            element={
+              <ProtectedRoute>
+                <NotificationPreferences />
               </ProtectedRoute>
             }
           />
