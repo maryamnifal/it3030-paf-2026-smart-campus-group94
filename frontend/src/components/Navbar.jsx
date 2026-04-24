@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { Bell, ChevronDown } from "lucide-react";
-import { getNotificationsByUser } from "../api/notificationApi";
+import { getNotificationsByUser, getAllNotifications } from "../api/notificationApi";
 
 const navLinks = [
   { label: "Home", path: "/" },
@@ -27,12 +27,19 @@ export default function Navbar() {
   const displayName = name || "User";
   const profileInitial = displayName.charAt(0).toUpperCase();
 
+  // ✅ Fetch real unread count — works for both USER and ADMIN
   useEffect(() => {
     const fetchUnreadCount = async () => {
       if (!userId || !token) return;
-
       try {
-        const notifications = await getNotificationsByUser(userId);
+        let notifications;
+        if (role === "ADMIN") {
+          // ADMIN sees count of ALL unread notifications
+          notifications = await getAllNotifications();
+        } else {
+          // USER sees only their own unread count
+          notifications = await getNotificationsByUser(userId);
+        }
         const unread = notifications.filter((n) => !n.read).length;
         setUnreadCount(unread);
       } catch (error) {
@@ -41,10 +48,16 @@ export default function Navbar() {
     };
 
     fetchUnreadCount();
-    const interval = setInterval(fetchUnreadCount, 30000);
+
+    // ✅ Refresh faster when on notifications page
+    const isOnNotificationsPage = location.pathname === "/notifications";
+    const interval = setInterval(
+      fetchUnreadCount,
+      isOnNotificationsPage ? 5000 : 30000
+    );
 
     return () => clearInterval(interval);
-  }, [userId, token]);
+  }, [userId, token, role, location.pathname]);
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 12);
@@ -58,7 +71,6 @@ export default function Navbar() {
         setMenuOpen(false);
       }
     };
-
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
@@ -75,6 +87,9 @@ export default function Navbar() {
     fontSize: "14px",
     color: "#334155",
     transition: "background 0.2s ease",
+    display: "flex",
+    alignItems: "center",
+    gap: "8px",
   };
 
   return (
@@ -142,7 +157,6 @@ export default function Navbar() {
                 targetPath =
                   role === "ADMIN" ? "/admin/dashboard" : "/user/dashboard";
               }
-
               if (link.label === "Bookings") {
                 targetPath = role === "ADMIN" ? "/admin/bookings" : "/bookings";
               }
@@ -207,10 +221,10 @@ export default function Navbar() {
             </button>
           ) : token ? (
             <>
-              {/* NOTIFICATION BELL */}
+              {/* 🔔 NOTIFICATION BELL */}
               <div
                 onClick={() => navigate("/notifications")}
-                title="Notifications"
+                title="View Notifications"
                 style={{
                   position: "relative",
                   cursor: "pointer",
@@ -249,7 +263,7 @@ export default function Navbar() {
                 )}
               </div>
 
-              {/* USER DROPDOWN */}
+              {/* 👤 USER DROPDOWN */}
               <div ref={dropdownRef} style={{ position: "relative" }}>
                 <div
                   onClick={() => setMenuOpen((prev) => !prev)}
@@ -270,7 +284,6 @@ export default function Navbar() {
                     transition: "background 0.2s ease",
                   }}
                 >
-                  {/* NAME */}
                   <span
                     style={{
                       fontSize: "14px",
@@ -281,8 +294,6 @@ export default function Navbar() {
                   >
                     {displayName}
                   </span>
-
-                  {/* PREMIUM ARROW */}
                   <ChevronDown
                     size={16}
                     style={{
@@ -291,8 +302,6 @@ export default function Navbar() {
                       transform: menuOpen ? "rotate(180deg)" : "rotate(0deg)",
                     }}
                   />
-
-                  {/* PROFILE ICON */}
                   <div
                     style={{
                       width: "30px",
@@ -313,13 +322,14 @@ export default function Navbar() {
                   </div>
                 </div>
 
+                {/* DROPDOWN MENU */}
                 {menuOpen && (
                   <div
                     style={{
                       position: "absolute",
                       right: 0,
                       top: "44px",
-                      width: "190px",
+                      width: "210px",
                       background: "#fff",
                       border: "1px solid rgba(15,23,42,0.08)",
                       borderRadius: "14px",
@@ -328,10 +338,23 @@ export default function Navbar() {
                       zIndex: 1100,
                     }}
                   >
+                    {/* Role Badge */}
+                    <div style={{
+                      padding: "8px 16px",
+                      fontSize: "11px",
+                      fontWeight: "700",
+                      color: role === "ADMIN" ? "#dc2626" : "#16a34a",
+                      background: role === "ADMIN" ? "#fef2f2" : "#f0fdf4",
+                      marginBottom: "4px",
+                    }}>
+                      {role === "ADMIN" ? "🛡 Administrator" : "👤 User"}
+                    </div>
+
+                    {/* Notifications */}
                     <div
                       onClick={() => {
                         setMenuOpen(false);
-                        navigate("/profile");
+                        navigate("/notifications");
                       }}
                       style={menuItemStyle}
                       onMouseEnter={(e) =>
@@ -341,9 +364,23 @@ export default function Navbar() {
                         (e.currentTarget.style.background = "transparent")
                       }
                     >
-                      Profile
+                      Notifications
+                      {unreadCount > 0 && (
+                        <span style={{
+                          marginLeft: "auto",
+                          background: "#ef4444",
+                          color: "#fff",
+                          borderRadius: "999px",
+                          fontSize: "10px",
+                          fontWeight: "700",
+                          padding: "1px 6px",
+                        }}>
+                          {unreadCount}
+                        </span>
+                      )}
                     </div>
 
+                    {/* Preferences — USER only */}
                     {role !== "ADMIN" && (
                       <div
                         onClick={() => {
@@ -358,10 +395,18 @@ export default function Navbar() {
                           (e.currentTarget.style.background = "transparent")
                         }
                       >
-                        Notifications
+                        Notification Preferences
                       </div>
                     )}
 
+                    {/* Divider */}
+                    <div style={{
+                      height: "1px",
+                      background: "#f1f5f9",
+                      margin: "4px 0",
+                    }} />
+
+                    {/* Logout */}
                     <div
                       onClick={handleLogout}
                       style={{ ...menuItemStyle, color: "#ef4444" }}
