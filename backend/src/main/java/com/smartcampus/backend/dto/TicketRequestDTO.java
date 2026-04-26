@@ -18,6 +18,8 @@ public class TicketRequestDTO {
     private String resourceId;      
     private String resourceName;    
     private String reporterType;
+    private String resourceLocation;
+    private String resourceType;
 
     @NotBlank(message = "Category is required")
     private String category;        // ELECTRICAL, EQUIPMENT, CLEANING, OTHER

@@ -18,6 +18,8 @@ public class TicketResponseDTO {
     private String id;
     private String resourceId;
     private String resourceName;
+    private String resourceLocation;
+    private String resourceType;
     private String category;
     private String description;
     private String priority;

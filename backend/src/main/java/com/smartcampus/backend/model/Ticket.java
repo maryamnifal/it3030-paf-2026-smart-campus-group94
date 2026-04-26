@@ -26,7 +26,9 @@ public class Ticket {
     // Which resource/location this ticket is about
     
     private String resourceId;
-    private String resourceName;    
+    private String resourceName; 
+    private String resourceLocation;
+    private String resourceType;   
 
     // Ticket details
     private String category;        
