@@ -23,6 +23,7 @@ public class TicketResponseDTO {
     private String priority;
     private String status;
     private String contactDetails;
+    private String reporterType;
     private String createdBy;
     private String createdByName;
     private String assignedTo;

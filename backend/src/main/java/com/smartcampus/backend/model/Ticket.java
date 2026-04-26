@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-// NOTE TO TEAM: MongoDB collection name is "tickets"
+
 // If your module uses a different collection name, update it here
 @Document(collection = "tickets")
 @Data
@@ -24,25 +24,26 @@ public class Ticket {
     private String id;
 
     // Which resource/location this ticket is about
-    // NOTE TO TEAM: This references the resource ID from the "resources" collection (Module A)
+    
     private String resourceId;
-    private String resourceName;    // stored for display purposes
+    private String resourceName;    
 
     // Ticket details
-    private String category;        // e.g. ELECTRICAL, EQUIPMENT, CLEANING, OTHER
-    private String description;     // full description of the problem
-    private String priority;        // LOW, MEDIUM, HIGH
-    private String contactDetails;  // preferred contact of the reporter
+    private String category;        
+    private String description;     
+    private String priority;        
+    private String contactDetails;  
+    private String reporterType; 
 
-    // Ticket status - follows workflow: OPEN → IN_PROGRESS → RESOLVED → CLOSED
+    
     // Admin can also set REJECTED with a reason
     private String status;
 
     // People involved
-    private String createdBy;       // user ID of ticket creator
-    private String createdByName;   // display name of creator
-    private String assignedTo;      // user ID of assigned technician
-    private String assignedToName;  // display name of technician
+    private String createdBy;       
+    private String createdByName;   
+    private String assignedTo;      
+    private String assignedToName;  
 
     // Resolution info
     private String resolutionNotes; // added when status → RESOLVED
@@ -52,7 +53,7 @@ public class Ticket {
     @Builder.Default
     private List<String> attachments = new ArrayList<>();
 
-    // Comments - embedded list of Comment objects
+    //Embedded list of Comment objects
     @Builder.Default
     private List<Comment> comments = new ArrayList<>();
 
