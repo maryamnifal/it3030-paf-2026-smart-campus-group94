@@ -149,9 +149,21 @@ public class TicketService {
         if (newStatus.equals("RESOLVED")) ticket.setResolutionNotes(request.getResolutionNotes());
         if (newStatus.equals("REJECTED")) ticket.setRejectionReason(request.getRejectionReason());
 
-        Ticket saved = ticketRepository.save(ticket);
+        
 
-        //Notify user based on new status
+        Ticket saved = ticketRepository.save(ticket);
+// Send email notification to ticket creator about status change
+        try {
+            emailService.sendStatusUpdateEmail(
+                saved.getCreatedBy(),
+                saved.getCreatedByName(),
+                saved
+            );
+        } catch (Exception e) {
+            System.err.println("Status update email failed: " + e.getMessage());
+        }
+
+        // 🔔 Notify user based on new status
         switch (newStatus) {
             case "IN_PROGRESS" -> sendNotification(
                 ticket.getCreatedBy(),
@@ -185,7 +197,6 @@ public class TicketService {
 
         return mapToResponse(saved);
     }
-
     // ASSIGN TECHNICIAN 
     public TicketResponseDTO assignTechnician(String ticketId, AssignTicketDTO request) {
         Ticket ticket = ticketRepository.findById(ticketId)
