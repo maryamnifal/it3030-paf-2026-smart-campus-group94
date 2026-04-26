@@ -35,7 +35,7 @@ public class TicketService {
 
     private final String UPLOAD_DIR = "uploads/tickets/";
 
-    // ─── NOTIFICATION HELPER ─────────────────────────────────────────────
+    //NOTIFICATION HELPER 
     private void sendNotification(String userId, String title, String message, String type) {
         Notification notification = new Notification();
         notification.setUserId(userId);
@@ -46,7 +46,7 @@ public class TicketService {
         notificationRepository.save(notification);
     }
 
-    // ─── STATUS TRANSITION VALIDATOR ─────────────────────────────────────
+    // STATUS TRANSITION VALIDATOR
     private boolean isValidStatusTransition(String currentStatus, String newStatus) {
         if (newStatus.equals("REJECTED")) return true;
         return switch (currentStatus) {
@@ -57,7 +57,7 @@ public class TicketService {
         };
     }
 
-    // ─── CREATE TICKET ────────────────────────────────────────────────────
+    // CREATE TICKET 
     public TicketResponseDTO createTicket(TicketRequestDTO request, String userId, String userName) {
         Ticket ticket = Ticket.builder()
                 .resourceId(request.getResourceId())
@@ -67,6 +67,7 @@ public class TicketService {
                 .priority(request.getPriority().toUpperCase())
                 .status("OPEN")
                 .contactDetails(request.getContactDetails())
+                .reporterType(request.getReporterType())
                 .createdBy(userId)
                 .createdByName(userName)
                 .createdAt(LocalDateTime.now())
@@ -75,7 +76,7 @@ public class TicketService {
 
         Ticket saved = ticketRepository.save(ticket);
 
-        // 🔔 Notify user ticket was created
+        // Notify user ticket was created
         sendNotification(
             userId,
             "Ticket Created 🎫",
@@ -87,7 +88,7 @@ public class TicketService {
         return mapToResponse(saved);
     }
 
-    // ─── GET ALL TICKETS (ADMIN) ──────────────────────────────────────────
+    // GET ALL TICKETS (ADMIN) 
     public List<TicketResponseDTO> getAllTickets(String status, String priority) {
         List<Ticket> tickets;
 
@@ -105,7 +106,7 @@ public class TicketService {
         return tickets.stream().map(this::mapToResponse).collect(Collectors.toList());
     }
 
-    // ─── GET MY TICKETS ───────────────────────────────────────────────────
+    // GET MY TICKETS
     public List<TicketResponseDTO> getMyTickets(String userId) {
         return ticketRepository.findByCreatedBy(userId)
                 .stream()
@@ -113,14 +114,14 @@ public class TicketService {
                 .collect(Collectors.toList());
     }
 
-    // ─── GET TICKET BY ID ─────────────────────────────────────────────────
+    // GET TICKET BY ID
     public TicketResponseDTO getTicketById(String ticketId) {
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new RuntimeException("Ticket not found with id: " + ticketId));
         return mapToResponse(ticket);
     }
 
-    // ─── UPDATE TICKET STATUS ─────────────────────────────────────────────
+    //UPDATE TICKET STATUS 
     public TicketResponseDTO updateTicketStatus(String ticketId, TicketStatusUpdateDTO request, String userId) {
         Ticket ticket = ticketRepository.findById(ticketId)
                 .orElseThrow(() -> new RuntimeException("Ticket not found with id: " + ticketId));
@@ -151,19 +152,16 @@ public class TicketService {
         
 
         Ticket saved = ticketRepository.save(ticket);
-
-        // Send email notification to ticket creator about status change
-            try {
-                emailService.sendStatusUpdateEmail(
-                    saved.getCreatedBy(),
-                    saved.getCreatedByName(),
-                    saved
-                );
-            } catch (Exception e) {
-                System.err.println("Status update email failed: " + e.getMessage());
-            }
-
-
+// Send email notification to ticket creator about status change
+        try {
+            emailService.sendStatusUpdateEmail(
+                saved.getCreatedBy(),
+                saved.getCreatedByName(),
+                saved
+            );
+        } catch (Exception e) {
+            System.err.println("Status update email failed: " + e.getMessage());
+        }
 
         // 🔔 Notify user based on new status
         switch (newStatus) {
@@ -199,8 +197,7 @@ public class TicketService {
 
         return mapToResponse(saved);
     }
-
-    // ─── ASSIGN TECHNICIAN ────────────────────────────────────────────────
+    // ASSIGN TECHNICIAN 
     public TicketResponseDTO assignTechnician(String ticketId, AssignTicketDTO request) {
         Ticket ticket = ticketRepository.findById(ticketId)
             .orElseThrow(() -> new RuntimeException("Ticket not found with id: " + ticketId));
@@ -234,7 +231,7 @@ public class TicketService {
         return mapToResponse(saved);
     }
 
-    // ─── DELETE TICKET ────────────────────────────────────────────────────
+    // DELETE TICKET 
     public void deleteTicket(String ticketId) {
         if (!ticketRepository.existsById(ticketId)) {
             throw new RuntimeException("Ticket not found with id: " + ticketId);
@@ -242,7 +239,7 @@ public class TicketService {
         ticketRepository.deleteById(ticketId);
     }
 
-    // ─── ADD COMMENT ──────────────────────────────────────────────────────
+    //ADD COMMENT 
     public TicketResponseDTO addComment(String ticketId, CommentRequestDTO request,
                                         String userId, String userName) {
         Ticket ticket = ticketRepository.findById(ticketId)
@@ -262,7 +259,7 @@ public class TicketService {
 
         Ticket saved = ticketRepository.save(ticket);
 
-        // 🔔 Notify ticket owner if someone else commented
+        // Notify ticket owner if someone else commented
         if (!ticket.getCreatedBy().equals(userId)) {
             sendNotification(
                 ticket.getCreatedBy(),
@@ -276,7 +273,7 @@ public class TicketService {
         return mapToResponse(saved);
     }
 
-    // ─── EDIT COMMENT ─────────────────────────────────────────────────────
+    // EDIT COMMENT
     public TicketResponseDTO editComment(String ticketId, String commentId,
                                          CommentRequestDTO request, String userId, boolean isAdmin) {
         Ticket ticket = ticketRepository.findById(ticketId)
@@ -351,7 +348,7 @@ public class TicketService {
         return mapToResponse(ticketRepository.save(ticket));
     }
 
-    // ─── MAPPER ───────────────────────────────────────────────────────────
+    // MAPPER 
     private TicketResponseDTO mapToResponse(Ticket ticket) {
         List<CommentResponseDTO> commentDTOs = ticket.getComments().stream()
                 .map(c -> CommentResponseDTO.builder()
@@ -373,6 +370,7 @@ public class TicketService {
                 .priority(ticket.getPriority())
                 .status(ticket.getStatus())
                 .contactDetails(ticket.getContactDetails())
+                .reporterType(ticket.getReporterType())
                 .createdBy(ticket.getCreatedBy())
                 .createdByName(ticket.getCreatedByName())
                 .assignedTo(ticket.getAssignedTo())
