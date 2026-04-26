@@ -214,10 +214,8 @@ public class EmailService {
                                     <div class="field-label">Location / Resource</div>
                                     <div class="field-value">%s</div>
                                 </div>
-                                <div class="field">
-                                    <div class="field-label">Reporter Type</div>
-                                    <div class="field-value">%s</div>
-                                </div>
+                                
+                                
                                 <div class="field">
                                     <div class="field-label">Reported By</div>
                                     <div class="field-value">%s</div>
