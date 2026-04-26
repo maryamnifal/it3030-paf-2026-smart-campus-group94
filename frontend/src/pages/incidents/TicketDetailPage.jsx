@@ -223,6 +223,7 @@ export default function TicketDetailPage() {
 
   const details = [
     ["Reported By", ticket.createdByName || "N/A"],
+    ["Reporter Type", ticket.reporterType || "N/A" ],
     ["Location / Resource", ticket.resourceName || "N/A"],
     ["Contact Details", ticket.contactDetails || "N/A"],
     ["Assigned To", ticket.assignedToName || "Unassigned"],
