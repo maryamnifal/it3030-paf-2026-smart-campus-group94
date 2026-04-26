@@ -62,6 +62,7 @@ export default function CreateTicketPage() {
     description: "",
     priority: "MEDIUM",
     contactDetails: "",
+    reporterType: "",
   });
 
   const categories = ["EQUIPMENT", "ELECTRICAL", "CLEANING", "PLUMBING", "OTHER"];
@@ -319,6 +320,20 @@ export default function CreateTicketPage() {
                 </div>
 
                 <div>
+                  <label style={labelStyle}>Reporter Type *</label>
+                  <select
+                  value={form.reporterType}
+                  onChange={(e) => setForm({ ...form, reporterType: e.target.value })}
+                  style={{ ...inputStyle, cursor: "pointer" }}
+                  >
+                  <option value="">Select Reporter Type</option>
+                  <option value="STUDENT">Student</option>
+                  <option value="STAFF">Staff</option>
+                  <option value="ADMIN">Admin</option>
+                  </select>
+              </div>
+
+                <div>
                   <label style={labelStyle}>Attachments (max 3 images)</label>
                   <input
                     type="file"
@@ -390,7 +405,7 @@ export default function CreateTicketPage() {
                   "Select the exact resource location for faster resolution.",
                   "Set priority to HIGH only for urgent safety issues.",
                   "Upload up to 3 images as evidence of the problem.",
-                  "A technician will be assigned after admin review.",
+                  "If needed a technician will be assigned after admin review.",
                 ].map((tip) => (
                   <div key={tip} style={{ display: "flex", alignItems: "flex-start", gap: "10px" }}>
                     <div style={{ width: "22px", height: "22px", borderRadius: "50%", background: "var(--primary)", color: "#111827", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "12px", fontWeight: 800, flexShrink: 0, marginTop: "2px" }}>
