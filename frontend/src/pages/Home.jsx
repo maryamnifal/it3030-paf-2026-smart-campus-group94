@@ -25,7 +25,7 @@ const modules = [
   {
     icon: "🔔",
     title: "Notifications",
-    desc: "Deliver timely updates for approvals, incidents, and operational announcements.",
+    desc: "Deliver timely updates for approvals, incidents, and operational announcements through instant notifications",
     path: "/notifications",
   },
 ];
@@ -109,13 +109,13 @@ export default function Home() {
         />
 
        <div
-  style={{
-    position: "absolute",
-    inset: 0,
-    background:
-      "linear-gradient(90deg, rgba(9,18,32,0.55) 0%, rgba(15,41,71,0.45) 45%, rgba(22,58,99,0.35) 100%)",
-  }}
-/>
+        style={{
+          position: "absolute",
+          inset: 0,
+          background:
+            "linear-gradient(90deg, rgba(9,18,32,0.55) 0%, rgba(15,41,71,0.45) 45%, rgba(22,58,99,0.35) 100%)",
+        }}
+      />
 
         <div
           style={{

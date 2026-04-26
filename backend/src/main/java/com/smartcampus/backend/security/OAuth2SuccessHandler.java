@@ -34,20 +34,41 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
 
         OAuth2User oAuth2User = (OAuth2User) authentication.getPrincipal();
 
+        String provider = request.getRequestURI().contains("github") ? "github" : "google";
+
         String email = oAuth2User.getAttribute("email");
         String name = oAuth2User.getAttribute("name");
         String picture = oAuth2User.getAttribute("picture");
 
-        // fallback values (important for GitHub)
+        if ("github".equals(provider)) {
+            String login = oAuth2User.getAttribute("login");
+            String avatarUrl = oAuth2User.getAttribute("avatar_url");
+
+            if (email == null || email.isBlank()) {
+                email = login + "@github.local";
+            }
+
+            if (name == null || name.isBlank()) {
+                name = login;
+            }
+
+            if (picture == null || picture.isBlank()) {
+                picture = avatarUrl;
+            }
+        }
+
+        if (email == null || email.isBlank()) {
+            response.sendRedirect(frontendUrl + "/login?error=email_missing");
+            return;
+        }
+
         if (name == null || name.isBlank()) {
             name = email;
         }
+
         if (picture == null) {
             picture = "";
         }
-
-        // ✅ FIX: detect provider dynamically
-        String provider = request.getRequestURI().contains("github") ? "github" : "google";
 
         Optional<User> existingUser = userRepository.findByEmail(email);
         User user;
@@ -63,25 +84,29 @@ public class OAuth2SuccessHandler implements AuthenticationSuccessHandler {
                     .email(email)
                     .name(name)
                     .picture(picture)
-                    .role("USER") // default role
-                    .provider(provider) // ✅ FIXED
+                    .role("USER")
+                    .provider(provider)
                     .createdAt(LocalDateTime.now())
                     .lastLoginAt(LocalDateTime.now())
                     .build();
         }
 
-        userRepository.save(user);
+        user = userRepository.save(user);
 
-        // Generate JWT
         String token = jwtUtil.generateToken(email, user.getRole(), name);
 
-        // ✅ KEEP THIS (AuthCallback depends on it)
+        String safeFrontendUrl = frontendUrl != null ? frontendUrl : "";
+        String safeToken = token != null ? token : "";
+        String safeRole = user.getRole() != null ? user.getRole() : "USER";
+        String safeName = name != null ? name : "";
+        String safeUserId = user.getId() != null ? String.valueOf(user.getId()) : "";
+
         response.sendRedirect(
-                frontendUrl
-                        + "/auth/callback?token=" + URLEncoder.encode(token, StandardCharsets.UTF_8)
-                        + "&role=" + URLEncoder.encode(user.getRole(), StandardCharsets.UTF_8)
-                        + "&name=" + URLEncoder.encode(name, StandardCharsets.UTF_8)
-                        + "&userId=" + URLEncoder.encode(user.getId(), StandardCharsets.UTF_8)
+                safeFrontendUrl
+                        + "/auth/callback?token=" + URLEncoder.encode(safeToken, StandardCharsets.UTF_8)
+                        + "&role=" + URLEncoder.encode(safeRole, StandardCharsets.UTF_8)
+                        + "&name=" + URLEncoder.encode(safeName, StandardCharsets.UTF_8)
+                        + "&userId=" + URLEncoder.encode(safeUserId, StandardCharsets.UTF_8)
         );
     }
 }

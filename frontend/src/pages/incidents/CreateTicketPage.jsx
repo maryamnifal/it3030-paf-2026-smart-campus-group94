@@ -62,6 +62,7 @@ export default function CreateTicketPage() {
     description: "",
     priority: "MEDIUM",
     contactDetails: "",
+    reporterType: "",
   });
 
   const categories = ["EQUIPMENT", "ELECTRICAL", "CLEANING", "PLUMBING", "OTHER"];
@@ -317,6 +318,20 @@ export default function CreateTicketPage() {
                     style={inputStyle}
                   />
                 </div>
+
+                <div>
+                  <label style={labelStyle}>Reporter Type *</label>
+                  <select
+                  value={form.reporterType}
+                  onChange={(e) => setForm({ ...form, reporterType: e.target.value })}
+                  style={{ ...inputStyle, cursor: "pointer" }}
+                  >
+                  <option value="">Select Reporter Type</option>
+                  <option value="STUDENT">Student</option>
+                  <option value="STAFF">Staff</option>
+                  <option value="ADMIN">Admin</option>
+                  </select>
+              </div>
 
                 <div>
                   <label style={labelStyle}>Attachments (max 3 images)</label>

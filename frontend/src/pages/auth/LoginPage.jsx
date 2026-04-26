@@ -56,7 +56,7 @@ export default function LoginPage() {
     border: "1px solid rgba(15,23,42,0.07)",
     borderRadius: "32px",
     boxShadow: "0 24px 60px rgba(15,23,42,0.08)",
-    padding: "40px",
+    padding: "24px",
   };
 
   const socialButtonStyle = {
