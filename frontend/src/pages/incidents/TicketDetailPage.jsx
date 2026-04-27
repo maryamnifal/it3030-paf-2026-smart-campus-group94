@@ -223,7 +223,9 @@ export default function TicketDetailPage() {
 
   const details = [
     ["Reported By", ticket.createdByName || "N/A"],
-    ["Location / Resource", ticket.resourceName || "N/A"],
+    ["Location", ticket.resourceLocation || "N/A"],
+    ["Resource Type", ticket.resourceType || "N/A"],
+    ["Resource Name", ticket.resourceName || "N/A"],
     ["Contact Details", ticket.contactDetails || "N/A"],
     ["Assigned To", ticket.assignedToName || "Unassigned"],
     ["Created At", ticket.createdAt ? new Date(ticket.createdAt).toLocaleString() : "N/A"],
@@ -461,7 +463,9 @@ export default function TicketDetailPage() {
               <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "20px", marginBottom: "20px" }}>
                 {[
                   { label: "Reported By", value: ticket.createdByName },
-                  { label: "Location / Resource", value: ticket.resourceName || "N/A" },
+                  { label: "Location", value: ticket.resourceLocation || "N/A" },
+                  { label: "Resource Type", value: ticket.resourceType || "N/A" },
+                  { label: "Resource Name", value: ticket.resourceName || "N/A" },
                   { label: "Contact", value: ticket.contactDetails },
                   { label: "Assigned To", value: ticket.assignedToName || "Unassigned" },
                 ].map((item) => (

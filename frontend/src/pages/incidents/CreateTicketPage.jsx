@@ -55,13 +55,16 @@ export default function CreateTicketPage() {
   const [selectedType, setSelectedType] = useState("");
   const [selectedResource, setSelectedResource] = useState(null);
 
-  const [form, setForm] = useState({
+ const [form, setForm] = useState({
     resourceId: "",
     resourceName: "",
+    resourceLocation: "",
+    resourceType: "",
     category: "EQUIPMENT",
     description: "",
     priority: "MEDIUM",
     contactDetails: "",
+    reporterType: "",
   });
 
   const categories = ["EQUIPMENT", "ELECTRICAL", "CLEANING", "PLUMBING", "OTHER"];
@@ -101,6 +104,8 @@ export default function CreateTicketPage() {
       ...form,
       resourceId: resource ? resource.id : "",
       resourceName: resource ? resource.name : "",
+      resourceLocation: resource ? resource.location : "",
+      resourceType: resource ? resource.type : "",
     });
   };
 
@@ -317,6 +322,20 @@ export default function CreateTicketPage() {
                     style={inputStyle}
                   />
                 </div>
+
+                <div>
+  <label style={labelStyle}>Reporter Type *</label>
+  <select
+    value={form.reporterType}
+    onChange={(e) => setForm({ ...form, reporterType: e.target.value })}
+    style={{ ...inputStyle, cursor: "pointer" }}
+  >
+    <option value="">Select Reporter Type</option>
+    <option value="STUDENT">Student</option>
+    <option value="STAFF">Staff</option>
+    <option value="ADMIN">Admin</option>
+  </select>
+</div>
 
                 <div>
                   <label style={labelStyle}>Attachments (max 3 images)</label>
