@@ -18,11 +18,14 @@ public class TicketResponseDTO {
     private String id;
     private String resourceId;
     private String resourceName;
+    private String resourceLocation;
+    private String resourceType;
     private String category;
     private String description;
     private String priority;
     private String status;
     private String contactDetails;
+    private String reporterType;
     private String createdBy;
     private String createdByName;
     private String assignedTo;

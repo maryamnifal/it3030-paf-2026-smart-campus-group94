@@ -14,9 +14,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class TicketRequestDTO {
 
-    // NOTE TO TEAM: resourceId references the resource from Module A (facilities)
-    private String resourceId;      // optional - ticket might be for a general location
-    private String resourceName;    // name of the resource/location
+   
+    private String resourceId;      
+    private String resourceName;    
+    private String reporterType;
+    private String resourceLocation;
+    private String resourceType;
 
     @NotBlank(message = "Category is required")
     private String category;        // ELECTRICAL, EQUIPMENT, CLEANING, OTHER

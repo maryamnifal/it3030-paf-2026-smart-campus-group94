@@ -25,6 +25,7 @@ public class Booking {
     private int expectedAttendees;
     private BookingStatus status = BookingStatus.PENDING;
     private String rejectionReason;
+    private String approvalMessage; // ✅ NEW — optional message from admin when approving
 
     @CreatedDate
     private LocalDateTime createdAt;
@@ -32,10 +33,8 @@ public class Booking {
     @LastModifiedDate
     private LocalDateTime updatedAt;
 
-    // Constructors
     public Booking() {}
 
-    // Getters and Setters
     public String getId() { return id; }
     public void setId(String id) { this.id = id; }
 
@@ -68,6 +67,10 @@ public class Booking {
 
     public String getRejectionReason() { return rejectionReason; }
     public void setRejectionReason(String rejectionReason) { this.rejectionReason = rejectionReason; }
+
+    // ✅ NEW
+    public String getApprovalMessage() { return approvalMessage; }
+    public void setApprovalMessage(String approvalMessage) { this.approvalMessage = approvalMessage; }
 
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }

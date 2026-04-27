@@ -23,73 +23,63 @@ public class BookingController {
         this.bookingService = bookingService;
     }
 
-    // 1. Create a new booking
     @PostMapping
     public ResponseEntity<BookingResponseDTO> createBooking(
             @Valid @RequestBody BookingRequestDTO request) {
-        BookingResponseDTO response = bookingService.createBooking(request);
-        return ResponseEntity.status(HttpStatus.CREATED).body(response);
+        return ResponseEntity.status(HttpStatus.CREATED).body(bookingService.createBooking(request));
     }
 
-    // 2. Get my bookings (by userId)
     @GetMapping("/my/{userId}")
-    public ResponseEntity<List<BookingResponseDTO>> getMyBookings(
-            @PathVariable String userId) {
+    public ResponseEntity<List<BookingResponseDTO>> getMyBookings(@PathVariable String userId) {
         return ResponseEntity.ok(bookingService.getMyBookings(userId));
     }
 
-    // 3. Get all bookings (admin only)
     @GetMapping
     public ResponseEntity<List<BookingResponseDTO>> getAllBookings() {
         return ResponseEntity.ok(bookingService.getAllBookings());
     }
 
-    // ✅ NEW: Public availability check for regular users
-    // Returns PENDING + APPROVED bookings for a resource on a date
-    // Frontend uses this to grey out already-booked time slots
-    // GET /api/bookings/availability?resourceId=xxx&date=2026-04-21
     @GetMapping("/availability")
     public ResponseEntity<List<BookingResponseDTO>> getAvailability(
-            @RequestParam String resourceId,
-            @RequestParam String date) {
+            @RequestParam String resourceId, @RequestParam String date) {
         return ResponseEntity.ok(bookingService.getBookingsForResourceAndDate(resourceId, date));
     }
 
-    // 4. Update a booking
     @PutMapping("/{id}")
     public ResponseEntity<BookingResponseDTO> updateBooking(
-            @PathVariable String id,
-            @Valid @RequestBody BookingUpdateDTO request) {
-        BookingResponseDTO response = bookingService.updateBooking(id, request);
-        return ResponseEntity.ok(response);
+            @PathVariable String id, @Valid @RequestBody BookingUpdateDTO request) {
+        return ResponseEntity.ok(bookingService.updateBooking(id, request));
     }
 
-    // 5. Approve a booking
+    // ✅ Approve — accepts optional approvalMessage via StatusUpdateDTO body
+    // No Map import needed — reuses existing StatusUpdateDTO (with new approvalMessage field)
     @PutMapping("/{id}/approve")
     public ResponseEntity<BookingResponseDTO> approveBooking(
-            @PathVariable String id) {
-        return ResponseEntity.ok(bookingService.approveBooking(id));
+            @PathVariable String id,
+            @RequestBody(required = false) StatusUpdateDTO body) {
+        String message = (body != null && body.getApprovalMessage() != null)
+                ? body.getApprovalMessage() : "";
+        return ResponseEntity.ok(bookingService.approveBooking(id, message));
     }
 
-    // 6. Reject a booking
     @PutMapping("/{id}/reject")
     public ResponseEntity<BookingResponseDTO> rejectBooking(
-            @PathVariable String id,
-            @RequestBody StatusUpdateDTO statusUpdate) {
+            @PathVariable String id, @RequestBody StatusUpdateDTO statusUpdate) {
         return ResponseEntity.ok(bookingService.rejectBooking(id, statusUpdate));
     }
 
-    // 7. Cancel a booking
     @PutMapping("/{id}/cancel")
-    public ResponseEntity<BookingResponseDTO> cancelBooking(
-            @PathVariable String id) {
+    public ResponseEntity<BookingResponseDTO> cancelBooking(@PathVariable String id) {
         return ResponseEntity.ok(bookingService.cancelBooking(id));
     }
 
-    // 8. Delete a booking
+    @PutMapping("/{id}/checkin")
+    public ResponseEntity<BookingResponseDTO> checkInBooking(@PathVariable String id) {
+        return ResponseEntity.ok(bookingService.checkInBooking(id));
+    }
+
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteBooking(
-            @PathVariable String id) {
+    public ResponseEntity<Void> deleteBooking(@PathVariable String id) {
         bookingService.deleteBooking(id);
         return ResponseEntity.noContent().build();
     }

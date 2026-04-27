@@ -228,6 +228,8 @@ export default function TicketDetailPage() {
     ["Resource Name", ticket.resourceName || "N/A"],
     ["Contact Details", ticket.contactDetails || "N/A"],
     ["Assigned To", ticket.assignedToName || "Unassigned"],
+    ["Category", ticket.category || "N/A"],
+    ["Priority", ticket.priority || "N/A"],
     ["Created At", ticket.createdAt ? new Date(ticket.createdAt).toLocaleString() : "N/A"],
   ];
 
