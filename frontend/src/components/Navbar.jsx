@@ -27,20 +27,25 @@ export default function Navbar() {
   const displayName = name || "User";
   const profileInitial = displayName.charAt(0).toUpperCase();
 
-  // ✅ Fetch real unread count — works for both USER and ADMIN
+  // ✅ Fetch unread count
+  // ADMIN = only ADMIN-created unread notifications
+  // USER  = their own unread notifications
   useEffect(() => {
     const fetchUnreadCount = async () => {
       if (!userId || !token) return;
       try {
-        let notifications;
+        let unread = 0;
         if (role === "ADMIN") {
-          // ADMIN sees count of ALL unread notifications
-          notifications = await getAllNotifications();
+          const notifications = await getAllNotifications();
+          // ✅ Admin only sees count of ADMIN-created unread notifications
+          // SYSTEM notifications are for users — admin doesn't need to track them
+          unread = notifications.filter(
+            (n) => !n.read && n.source === "ADMIN"
+          ).length;
         } else {
-          // USER sees only their own unread count
-          notifications = await getNotificationsByUser(userId);
+          const notifications = await getNotificationsByUser(userId);
+          unread = notifications.filter((n) => !n.read).length;
         }
-        const unread = notifications.filter((n) => !n.read).length;
         setUnreadCount(unread);
       } catch (error) {
         console.error("Failed to fetch notifications:", error);
@@ -49,7 +54,7 @@ export default function Navbar() {
 
     fetchUnreadCount();
 
-    // ✅ Refresh faster when on notifications page
+    // Refresh faster when on notifications page
     const isOnNotificationsPage = location.pathname === "/notifications";
     const interval = setInterval(
       fetchUnreadCount,
@@ -221,47 +226,49 @@ export default function Navbar() {
             </button>
           ) : token ? (
             <>
-              {/* 🔔 NOTIFICATION BELL */}
-              <div
-                onClick={() => navigate("/notifications")}
-                title="View Notifications"
-                style={{
-                  position: "relative",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  width: "34px",
-                  height: "34px",
-                  borderRadius: "8px",
-                  flexShrink: 0,
-                }}
-              >
-                <Bell size={20} color="#475569" />
-                {unreadCount > 0 && (
-                  <span
-                    style={{
-                      position: "absolute",
-                      top: "2px",
-                      right: "2px",
-                      minWidth: "14px",
-                      height: "14px",
-                      background: "#ef4444",
-                      color: "#fff",
-                      borderRadius: "999px",
-                      fontSize: "9px",
-                      fontWeight: 700,
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                      padding: "0 3px",
-                      lineHeight: 1,
-                    }}
-                  >
-                    {unreadCount}
-                  </span>
-                )}
-              </div>
+              {/* 🔔 NOTIFICATION BELL — USER only */}
+              {role !== "ADMIN" && (
+                <div
+                  onClick={() => navigate("/notifications")}
+                  title="View Notifications"
+                  style={{
+                    position: "relative",
+                    cursor: "pointer",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    width: "34px",
+                    height: "34px",
+                    borderRadius: "8px",
+                    flexShrink: 0,
+                  }}
+                >
+                  <Bell size={20} color="#475569" />
+                  {unreadCount > 0 && (
+                    <span
+                      style={{
+                        position: "absolute",
+                        top: "2px",
+                        right: "2px",
+                        minWidth: "14px",
+                        height: "14px",
+                        background: "#ef4444",
+                        color: "#fff",
+                        borderRadius: "999px",
+                        fontSize: "9px",
+                        fontWeight: 700,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        padding: "0 3px",
+                        lineHeight: 1,
+                      }}
+                    >
+                      {unreadCount}
+                    </span>
+                  )}
+                </div>
+              )}
 
               {/* 👤 USER DROPDOWN */}
               <div ref={dropdownRef} style={{ position: "relative" }}>
