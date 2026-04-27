@@ -46,7 +46,7 @@ Only ACTIVE resources are available for booking
 
 Pirushalini
 
-🚀 Responsibilities (Amri)
+🚀 Responsibilities
 Integrated booking system with authentication
 Connected bookings with logged-in user (userId)
 Configured API communication with JWT
