@@ -44,23 +44,143 @@ Only ACTIVE resources are available for booking
 }
 📅 Booking System Integration
 
-Pirushalini
+# Module B — Booking Management System
 
-🚀 Responsibilities
-Integrated booking system with authentication
-Connected bookings with logged-in user (userId)
-Configured API communication with JWT
-Built user booking UI + filtering system
-🔑 Features
-Users can:
-Create bookings
-View their bookings
-Cancel bookings
-Admin can:
-View all bookings
-Approve / reject bookings
-🔄 Booking Flow
-User → Select Resource → Create Booking → Admin Approval → Status Update
+**Implemented by:** Pirushalini Nageswaran (IT23579804)
+
+---
+
+## Overview
+
+Module B handles the complete lifecycle of campus resource bookings. Users can browse available time slots for rooms, labs, halls, and equipment, then submit booking requests for admin approval. The system enforces strict business rules including resource status checks, capacity validation, availability window enforcement, and real-time conflict detection to prevent double bookings. Admins manage all requests through a structured approval workflow.
+
+---
+
+## Features Implemented
+
+### Core Features
+
+- **Fixed 2-hour time-slot system** — slots are generated automatically from each resource's availability windows instead of allowing free time input, eliminating invalid times and overlaps
+- **Real-time slot availability** — when a user selects a resource and date, the system fetches existing bookings and displays taken slots as disabled (red) and available slots as selectable (green)
+- **Booking status workflow:** `PENDING` → `APPROVED` / `REJECTED` → `CANCELLED` / `CHECKED_IN`
+- **Admin approval workflow** — every booking starts as PENDING and requires admin review before it is confirmed
+- **Rejection with mandatory reason** — admin must provide a rejection reason when declining; the reason is stored and displayed to the user on their booking card
+- **Check-in verification** — admin can mark APPROVED bookings as CHECKED_IN when the user physically arrives, providing a complete audit trail
+- **Edit booking** — users can edit date, time, purpose, and attendees on PENDING bookings; all validation rules are re-applied on update
+- **Cancel booking** — users can cancel their own PENDING or APPROVED bookings at any time
+
+### Multi-layer Validation (enforced in BookingService)
+
+1. **Resource status check** — only ACTIVE resources can be booked; OUT_OF_SERVICE resources are blocked with a clear error message
+2. **Capacity check** — expected attendees must not exceed the resource's maximum capacity
+3. **Availability window check** — booking time must fall within the resource's configured availability windows (e.g. MON 08:00–18:00)
+4. **Conflict detection** — no overlapping PENDING or APPROVED bookings are allowed on the same resource, date, and time slot
+
+### Role-based Access Control
+
+- **USER** — create, view own bookings, check slot availability, edit PENDING bookings, cancel bookings
+- **ADMIN** — view all bookings, approve, reject with reason, check-in, delete; enforced via Spring Security
+
+### Frontend Features
+
+- **3-step booking form** — Step 1: select resource and date → Step 2: pick a time slot → Step 3: enter purpose and attendees
+- **Live booking summary** — right panel updates in real time as the user fills in the form
+- **Capacity progress bar** — visual indicator showing how close attendees count is to the resource maximum
+- **Filter tabs** — booking history page supports filtering by All / Pending / Approved / Rejected / Cancelled
+- **Resources loaded from Facilities API** — dropdown is populated dynamically from Module A, only showing ACTIVE resources
+
+---
+
+## REST API Endpoints
+
+| Method | Endpoint | Access | Description |
+|--------|----------|--------|-------------|
+| `POST` | `/api/bookings` | Authenticated | Create a new booking request |
+| `GET` | `/api/bookings/my/{userId}` | Authenticated | Get all bookings for the logged-in user |
+| `GET` | `/api/bookings/availability` | Authenticated | Get booked slots for a resource on a specific date |
+| `PUT` | `/api/bookings/{id}` | Authenticated | Edit a PENDING or APPROVED booking |
+| `PUT` | `/api/bookings/{id}/cancel` | Authenticated | Cancel a booking |
+| `GET` | `/api/bookings` | ADMIN only | Get all bookings across all users |
+| `PUT` | `/api/bookings/{id}/approve` | ADMIN only | Approve a booking with optional message |
+| `PUT` | `/api/bookings/{id}/reject` | ADMIN only | Reject a booking with mandatory reason |
+| `PUT` | `/api/bookings/{id}/checkin` | ADMIN only | Mark an APPROVED booking as CHECKED_IN |
+| `DELETE` | `/api/bookings/{id}` | ADMIN only | Permanently delete a booking |
+
+---
+
+## Booking Status Workflow
+
+```
+(new) ──► PENDING ──► APPROVED ──► CHECKED_IN
+                │
+                ├──► REJECTED
+                │
+                └──► CANCELLED   (user can also cancel from APPROVED)
+```
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Backend | Java · Spring Boot 3.5 |
+| Frontend | React.js · Vite · Axios |
+| Database | MongoDB Atlas |
+| Authentication | Google OAuth 2.0 · JWT |
+| API Testing | Postman |
+| Version Control | Git · GitHub |
+
+---
+
+## File Structure
+
+```
+backend/src/main/java/com/smartcampus/backend/
+├── controller/
+│   └── BookingController.java       ← 10 REST endpoints
+├── service/
+│   └── BookingService.java          ← all business logic & validation
+├── repository/
+│   └── BookingRepository.java       ← MongoDB queries
+├── model/
+│   ├── Booking.java                 ← MongoDB document
+│   └── BookingStatus.java           ← PENDING, APPROVED, REJECTED, CANCELLED, CHECKED_IN
+├── dto/
+│   ├── BookingRequestDTO.java       ← validated input DTO
+│   ├── BookingResponseDTO.java      ← API response DTO
+│   ├── BookingUpdateDTO.java        ← edit booking DTO
+│   └── StatusUpdateDTO.java         ← rejection reason DTO
+└── exception/
+    ├── ConflictException.java        ← 409 errors
+    ├── ResourceNotFoundException.java ← 404 errors
+    └── GlobalExceptionHandler.java   ← maps exceptions to HTTP responses
+
+frontend/src/
+├── pages/Bookings/
+│   ├── BookingsPage.jsx             ← user booking history & management
+│   └── CreateBookingPage.jsx        ← 3-step booking form with slot picker
+├── pages/admin/
+│   └── BookingRequests.jsx          ← admin booking management panel
+└── api/
+    └── bookingApi.js                ← Axios API calls for booking module
+```
+
+---
+
+## Validation Error Responses
+
+| Scenario | HTTP Status | Error Message |
+|----------|------------|---------------|
+| Resource is OUT_OF_SERVICE | `409 Conflict` | Cannot book OUT_OF_SERVICE resource. Resource must be ACTIVE. |
+| Attendees exceed capacity | `409 Conflict` | Expected attendees (n) exceeds resource capacity (m). |
+| Outside availability window | `409 Conflict` | Resource is not available on [DAY]. Available windows: ... |
+| Double booking same slot | `409 Conflict` | This resource is already booked for the selected time slot. |
+| Missing required fields | `400 Bad Request` | Per-field validation messages |
+| Booking not found | `404 Not Found` | Booking not found with id: ... |
+| Access admin endpoint as user | `403 Forbidden` | Access Denied |
+
+---
 
 ## Module C — Maintenance & Incident Ticketing System
 *Implemented by:* Kularatne P.S.C. (IT23611238)
